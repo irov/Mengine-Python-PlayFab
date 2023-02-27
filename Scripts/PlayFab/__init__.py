@@ -19,7 +19,6 @@ def onInitialize():
     for identity in identities:
         Notificator.addIdentity(identity)
 
-
     Types = [
 
     ]
@@ -32,15 +31,13 @@ def onInitialize():
         for record in records:
             Types.append(record.get("Type"))
 
-
     ObjectManager.importObjects("Game.Objects", Types)
     EntityManager.importEntities("Game.Entities", Types)
 
     from Foundation.AccountManager import AccountManager
 
-
     def accountSetuper(accountID, isGlobal):
-        print "accountSetuper", accountID
+        print("accountSetuper", accountID)
         if isGlobal is True:
             return
 
@@ -50,11 +47,10 @@ def onInitialize():
         Mengine.addCurrentAccountSetting("DisplayName", u"You", None)
         Mengine.addCurrentAccountSetting("Password", u"12345678", None)
 
-
     AccountManager.addCreateAccountExtra(accountSetuper)
-    
+
     return True
     pass
-    
+
 def onFinalize():
     pass

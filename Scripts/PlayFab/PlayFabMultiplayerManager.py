@@ -1,6 +1,6 @@
 # coding=utf-8
-import PlayFab.PlayFabMultiplayerAPI as PlayFabMultiplayerAPI
 import PlayFab.PlayFabAuthenticationAPI as PlayFabAuthenticationAPI
+import PlayFab.PlayFabMultiplayerAPI as PlayFabMultiplayerAPI
 
 from PlayFabBaseMethods import PlayFabBaseMethods
 
@@ -54,7 +54,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
     @staticmethod
     def scopeCreateMatchmakingTicket(source, give_up_after_second, queue_name, success_cb, fail_cb, **error_handlers):
         def cb(*args):
-            print "args", args[0]['Entity']["Id"]
+            print("args", args[0]['Entity']["Id"])
             PlayFabMultiplayerManager.callPlayFabAPI(
                 PlayFabMultiplayerManager.prepareCreateMatchmakingTicket,
                 args[0]['Entity']["Id"], give_up_after_second, queue_name,
@@ -96,9 +96,13 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
                 TicketId - The Id of the ticket to find a match for.
             :return: response
             """
-            print "response", response
+            print("response", response)
+            
             return response
-        print "ticket_id, queue_name", ticket_id, queue_name
+            pass
+            
+        print("ticket_id, queue_name", ticket_id, queue_name)
+        
         return PlayFabMultiplayerManager.preparePlayFabAPI(
             PlayFabMultiplayerAPI.GetMatchmakingTicket,
             {
@@ -133,7 +137,6 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
 
     @staticmethod
     def prepareGetMatch(match_id, queue_name, success_cb, fail_cb, **error_handlers):
-
         @PlayFabMultiplayerManager.do_before_cb(success_cb)
         def __success_cb(response):
             """
@@ -146,9 +149,9 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
                 ServerDetails - The details of the server that the match has been allocated to.
             :return:
             """
-            print "response"
+            
+            print("response")
             return response
-
         return PlayFabMultiplayerManager.preparePlayFabAPI(
             PlayFabMultiplayerAPI.GetMatch,
             {
@@ -184,7 +187,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
     def prepareCancelMatchmakingTicket(ticket_id, queue_name, success_cb, fail_cb, **error_handlers):
         @PlayFabMultiplayerManager.do_before_cb(success_cb)
         def __success_cb(response):
-            print "response"
+            print("response")
             return response
 
         return PlayFabMultiplayerManager.preparePlayFabAPI(

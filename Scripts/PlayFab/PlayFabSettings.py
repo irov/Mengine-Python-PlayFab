@@ -51,7 +51,6 @@ DisableAdvertising = False
 AD_TYPE_IDFA = "Idfa"
 AD_TYPE_ANDROID_ID = "Adid"
 
-
 class InternalSettings:
     pass
 

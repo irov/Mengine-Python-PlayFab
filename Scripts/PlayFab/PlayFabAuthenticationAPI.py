@@ -8,7 +8,7 @@ models. These APIs will provide you with the entity authentication token needed 
 API keys for authenticating any entity.
 """
 
-def GetEntityToken(request, callback, customData = None, extraHeaders = None):
+def GetEntityToken(request, callback, customData=None, extraHeaders=None):
     """
     Method to exchange a legacy AuthenticationTicket or title SecretKey for an Entity Token or to refresh a still valid
     Entity Token.
@@ -34,7 +34,7 @@ def GetEntityToken(request, callback, customData = None, extraHeaders = None):
 
     PlayFabHTTP.DoPost("/Authentication/GetEntityToken", request, authKey, authValue, wrappedCallback, customData, extraHeaders)
 
-def ValidateEntityToken(request, callback, customData = None, extraHeaders = None):
+def ValidateEntityToken(request, callback, customData=None, extraHeaders=None):
     """
     Method for a server to validate a client provided EntityToken. Only callable by the title entity.
     https://docs.microsoft.com/rest/api/playfab/authentication/authentication/validateentitytoken

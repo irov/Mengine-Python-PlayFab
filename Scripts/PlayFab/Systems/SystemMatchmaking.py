@@ -7,7 +7,6 @@ from PlayFab.PlayFabManager import PlayFabManager
 QUEUE_1_VS_1_NAME = "queue_dots_1vs1"
 GIVE_UP_AFTER_SECONDS = 100
 
-
 class SystemMatchmaking(System):
 
     def __init__(self):
@@ -43,7 +42,7 @@ class SystemMatchmaking(System):
             semaphore_ticket_created.setValue(True)
 
         def fail_cb(*args):
-            print "SystemMatchmaking fail_cb args", args
+            print("SystemMatchmaking fail_cb args", args)
 
         source.addScope(PlayFabManager.scopeCreateMatchmakingTicket,
                         GIVE_UP_AFTER_SECONDS,
@@ -62,7 +61,7 @@ class SystemMatchmaking(System):
                 semaphore_match_is_ready.setValue(True)
 
         def fail_cb(*args):
-            print "SystemMatchmaking fail_cb args", args[0].GenerateErrorReport()
+            print("SystemMatchmaking fail_cb args", args[0].GenerateErrorReport())
             pass
 
         semaphore_match_is_ready = Semaphore(False, "MatchIsReady")
@@ -93,7 +92,7 @@ class SystemMatchmaking(System):
             pass
 
         def fail_cb(*args):
-            print "SystemMatchmaking fail_cb args", args[0].GenerateErrorReport()
+            print("SystemMatchmaking fail_cb args", args[0].GenerateErrorReport())
             pass
 
         source.addScope(PlayFabManager.scopeGetMatch,

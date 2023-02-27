@@ -1,9 +1,6 @@
-from PlayFab.PlayFabManager import PlayFabManager
-
-from Foundation.Manager import Manager
-
 from Foundation.DefaultManager import DefaultManager
-from Foundation.SecureValue import SecureValue
+from Foundation.Manager import Manager
+from PlayFab.PlayFabManager import PlayFabManager
 
 # todo: replace with PlayFab player data params
 STUFF_CELL_INDEX_START = 1
@@ -14,7 +11,6 @@ BOOSTERS_MAX_COUNT = 4
 SERVER_STATUS_OK = 0
 SERVER_STATUS_FAIL = 1
 SERVER_STATUS_UPDATING = 2
-
 
 class GameManager(Manager):
     s_player_data_cache = {}
@@ -96,7 +92,7 @@ class GameManager(Manager):
         @__error
         def __fail_cb(playFabError):
             Trace.log("Manager", 0, playFabError)
-            print "\nError link: \n{}\n".format(playFabError)
+            print("\nError link: \n{}\n".format(playFabError))
 
         error_handlers = dict(
             LinkedDeviceAlreadyClaimed=__fail_cb,
@@ -127,7 +123,7 @@ class GameManager(Manager):
         @__error
         def __fail_cb(playFabError):
             Trace.log("Manager", 0, playFabError)
-            print "\nError link: \n{}\n".format(playFabError)
+            print("\nError link: \n{}\n".format(playFabError))
 
         error_handlers = dict(
             AccountNotLinked=__fail_cb,
@@ -145,7 +141,7 @@ class GameManager(Manager):
             return
 
         def __success_cb(response):
-            print 'scopeLoginWithAndroidDeviceID.__success_cb'
+            print('scopeLoginWithAndroidDeviceID.__success_cb')
             Mengine.changeCurrentAccountSetting("FirstLogin", u'False')
             Mengine.changeCurrentAccountSetting("PlayFabId", response.get("PlayFabId"))
 
@@ -160,7 +156,7 @@ class GameManager(Manager):
             return response
 
         def __error(func):
-            print 'scopeLoginWithAndroidDeviceID.__error'
+            print('scopeLoginWithAndroidDeviceID.__error')
 
             def __wrapper(*args, **kwargs):
                 func(*args, **kwargs)
@@ -173,10 +169,10 @@ class GameManager(Manager):
         @__error
         def __fail_cb(playFabError):
             Trace.log("Manager", 0, playFabError)
-            print "\nError login: \n{}\n".format(playFabError)
+            print("\nError login: \n{}\n".format(playFabError))
 
         def __account_not_found_cb(playFabError):
-            print 'not found account. start create account!'
+            print('not found account. start create account!')
 
         error_handlers = dict(
             AccountNotFound=__account_not_found_cb,
@@ -215,10 +211,10 @@ class GameManager(Manager):
         @__error
         def __fail_cb(playFabError):
             Trace.log("Manager", 0, playFabError)
-            print "\nError login: \n{}\n".format(playFabError)
+            print("\nError login: \n{}\n".format(playFabError))
 
         def __account_not_found_cb(playFabError):
-            print 'not found account!. start create account!'
+            print('not found account!. start create account!')
             holder_login_success.set(False)
 
         isFirstLogin = Mengine.getCurrentAccountSettingBool("FirstLogin")
@@ -323,7 +319,7 @@ class GameManager(Manager):
         fb_access_token = AndroidFacebook.getAccessToken()
 
         def __success_cb(response):
-            print "PlayFabManager.scopeLinkFacebookAccount __success_cb"
+            print("PlayFabManager.scopeLinkFacebookAccount __success_cb")
             Mengine.changeCurrentAccountSetting("PlayFabId", response.get("PlayFabId"))
             Mengine.changeCurrentAccountSetting("FirstLogin", u'False')
 
@@ -332,7 +328,7 @@ class GameManager(Manager):
             Mengine.saveAccounts()
 
         def __fail_cb(error):
-            print '__fail_cb error', error
+            print('__fail_cb error', error)
             # Trace.log("Manager", 0, error)
             if isSuccessHolder is not None:
                 isSuccessHolder.setValue(False)
@@ -371,7 +367,7 @@ class GameManager(Manager):
         ]
 
         def __success_cb(response):
-            print "updatePlayerStatistics __success_cb", statistics
+            print("updatePlayerStatistics __success_cb", statistics)
 
         def __fail_cb(playFabError):
             Trace.log("Manager", 0, playFabError)
@@ -449,7 +445,7 @@ class GameManager(Manager):
             #     return
 
             if GameManager.checkProjectVersion(data) is False:
-                print "VVVVVVVVVVVVVVVVVVVVVV PROJECT VERSION IS NOT VALID VVVVVVVVVVVVVVVVVVVVVVV"
+                print("VVVVVVVVVVVVVVVVVVVVVV PROJECT VERSION IS NOT VALID VVVVVVVVVVVVVVVVVVVVVVV")
                 from Game.PopUp import PopUp
                 source.addScope(PopUp.scope_Check_Version)
                 # Notification.notify(Notificator.onMessageOkPopUp, "AppUpdate")
@@ -497,7 +493,7 @@ class GameManager(Manager):
         server_project_version_string = data.get("ProjectVersion")
 
         if server_project_version_string is None:
-            print "NO PROJECT VERSION IN ON LOGGED IN RESPONSE"
+            print("NO PROJECT VERSION IN ON LOGGED IN RESPONSE")
             return False
 
         client_project_version = Mengine.getConfigInt("Playfab", "ProjectVersion", 0)
@@ -505,19 +501,17 @@ class GameManager(Manager):
         # dirty hack
         server_project_version_parts = server_project_version_string.split(".")
         if not server_project_version_parts:
-            print "PROJECT VERSION FAIL TO CONVERT"
+            print("PROJECT VERSION FAIL TO CONVERT")
             return False
 
         server_project_version = int(server_project_version_parts[0])
 
-        print
-        print " ___PROJECT_VERSION___ SERVER='{}' / CLIENT='{}'".format(
-            server_project_version, client_project_version
-        )
+        print()
+        print(" ___PROJECT_VERSION___ SERVER='{}' / CLIENT='{}'".format(server_project_version, client_project_version))
 
         is_valid_versions = server_project_version <= client_project_version
 
-        print " __CHECK__ {}".format(is_valid_versions)
+        print(" __CHECK__ {}".format(is_valid_versions))
 
         return is_valid_versions
 
@@ -529,12 +523,12 @@ class GameManager(Manager):
         title_data_keys = ["ProjectVersion"]
         def __success_cb(data):
             if len(data) == 0:  # try again
-                print " DATA IS EMPTY - TRY AGAIN ".center(100, "A")
+                print(" DATA IS EMPTY - TRY AGAIN ".center(100, "A"))
                 if isSuccessHolder is not None:
                     isSuccessHolder.setValue(False)
                 return
             if GameManager.checkProjectVersion(data) is False:
-                print " checkProjectVersion is False ".center(100, "A")
+                print(" checkProjectVersion is False ".center(100, "A"))
                 if isSuccessHolder is not None:
                     isSuccessHolder.setValue(False)
                 return
@@ -543,7 +537,7 @@ class GameManager(Manager):
                 isSuccessHolder.setValue(True)
 
         def __fail_cb(playFabError):
-            print 'Error loading TitleData'
+            print('Error loading TitleData')
 
             if isSuccessHolder is not None:
                 isSuccessHolder.setValue(False)

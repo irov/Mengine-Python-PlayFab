@@ -1,11 +1,10 @@
-import PlayFab.PlayFabSettings as PlayFabSettings
-import PlayFab.PlayFabErrors as PlayFabErrors
-
-from Foundation.TaskManager import TaskManager
-
 import json
 
-def DoPost(urlPath, request, authKey, authVal, callback, customData = None, extraHeaders = None):
+import PlayFab.PlayFabErrors as PlayFabErrors
+import PlayFab.PlayFabSettings as PlayFabSettings
+from Foundation.TaskManager import TaskManager
+
+def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraHeaders=None):
     """
     Note this is a blocking call and will always run synchronously
     the return type is a dictionary that should contain a valid dictionary that
@@ -27,7 +26,7 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData = None, extr
 
     requestHeaders["Content-Type"] = "application/json"
     requestHeaders["X-PlayFabSDK"] = PlayFabSettings._internalSettings.SdkVersionString
-    requestHeaders["X-ReportErrorAsSuccess"] = "true" # Makes processing PlayFab errors a little easier
+    requestHeaders["X-ReportErrorAsSuccess"] = "true"  # Makes processing PlayFab errors a little easier
 
     if authKey and authVal:
         requestHeaders[authKey] = authVal
@@ -40,7 +39,6 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData = None, extr
 
     with TaskManager.createTaskChain() as source:
         source.addTask("TaskHeaderData", Url=url, Headers=headers, Data=j, Cb=__onHeaderData, Args=(callback,))
-
 
 def __httpResponseHandler(httpResponse, callback):
     error = response = None
@@ -103,7 +101,6 @@ def __httpResponseHandler(httpResponse, callback):
     elif callback:
         callback(None, None)
 
-
 class HttpResponseAdapter(object):
     class Content(object):
         def __init__(self, response):
@@ -117,12 +114,10 @@ class HttpResponseAdapter(object):
         self.reason = error
         self.content = HttpResponseAdapter.Content(response)
 
-
 def __onHeaderData(status, error, response, code, successful, callback):
     httpResponse = HttpResponseAdapter(error, response, code)
 
     __httpResponseHandler(httpResponse, callback)
-
 
 def callGlobalErrorHandler(error):
     if PlayFabSettings.GlobalErrorHandler:

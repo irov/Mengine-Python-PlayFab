@@ -2,7 +2,6 @@ import PlayFab.PlayFabClientAPI as PlayFabClientAPI
 
 from PlayFabBaseMethods import PlayFabBaseMethods
 
-
 class PlayFabClientManager(PlayFabBaseMethods):
     @staticmethod
     def prepareRegisterPlayFabUser(user, password, success_cb, fail_cb, **error_handlers):

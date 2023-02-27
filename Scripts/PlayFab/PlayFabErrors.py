@@ -441,7 +441,6 @@ class PlayFabErrorCode(Enum):
     MatchmakingStatisticsIdMissing = 2037,
     CannotEnableMultiplayerServersForTitle = 2038
 
-
 class PlayFabError:
     def __init__(self, *args):
         """
@@ -455,7 +454,7 @@ class PlayFabError:
             self.Error = "ServiceUnavailable"
             self.ErrorCode = PlayFabErrorCode.ServiceUnavailable
             self.ErrorMessage = "Unable to contact PlayFab server"
-            self.ErrorDetails = None # dictionary of string keys and list of strings for values
+            self.ErrorDetails = None  # dictionary of string keys and list of strings for values
 
     def fromJson(self, other):
         self.HttpCode = other["code"]
@@ -498,7 +497,6 @@ class PlayFabError:
 
     def __str__(self):
         return self.GenerateErrorReport()
-
 
 class PlayFabException(Exception):
     pass

@@ -1,6 +1,5 @@
-from PlayFab.PlayFabErrors import PlayFabError, PlayFabErrorCode
-
 from Foundation.DefaultManager import DefaultManager
+from PlayFab.PlayFabErrors import PlayFabError
 
 class PlayFabBaseMethods(object):
     s_debug_pretty_print = None
@@ -15,34 +14,28 @@ class PlayFabBaseMethods(object):
             data = dumps(data, indent=2)
 
         LINE_CHAR_COUNT = 79
-        print
-        print " {} ".format(msg).center(LINE_CHAR_COUNT, '#')
+        print()
+        print(" {} ".format(msg).center(LINE_CHAR_COUNT, '#'))
 
         if DebugPlayFabResponseDataPrint is True:
-            print data
+            print(data)
         else:
-            print "! PlayFab response data print is disabled."
-            print "! For enable change default param 'DebugPlayFabResponseDataPrint' to True"
+            print("! PlayFab response data print is disabled.")
+            print("! For enable change default param 'DebugPlayFabResponseDataPrint' to True")
 
-        print "#" * LINE_CHAR_COUNT
-        print
-        
+        print("#" * LINE_CHAR_COUNT)
+        print()
+
     # = SERVICE ========================================================================================================
     @staticmethod
     def checkErrorHandler(error, handlers, log=False):
         if error not in handlers:
             if log:
-                Trace.log("Manager", 0,
-                          "[PlayFabBaseMethods|checkErrorHandler] no error handler for error '{}'".format(
-                              error
-                          ))
+                Trace.log("Manager", 0, "[PlayFabBaseMethods|checkErrorHandler] no error handler for error '{}'".format(error))
             return False
         elif handlers[error] is None:
             if log:
-                Trace.log("Manager", 0,
-                          "[PlayFabBaseMethods|checkErrorHandler] invalid error handler '{}' for error '{}'".format(
-                              handlers[error], error
-                          ))
+                Trace.log("Manager", 0, "[PlayFabBaseMethods|checkErrorHandler] invalid error handler '{}' for error '{}'".format(handlers[error], error))
             return False
         return True
 
@@ -53,7 +46,7 @@ class PlayFabBaseMethods(object):
                 return False
 
         return True
-        
+
     # = BASE ===========================================================================================================
     @staticmethod
     def make_api_cb(api_method, success_cb, fail_cb, error_handlers):
