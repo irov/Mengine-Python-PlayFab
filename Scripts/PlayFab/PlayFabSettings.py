@@ -70,7 +70,6 @@ _internalSettings.RequestGetParams = {
     "sdk": _internalSettings.SdkVersionString
 }
 
-
 def GetURL(methodUrl, getParams):
     if not TitleId:
         raise PlayFabErrors.PlayFabException("You must set PlayFabSettings.TitleId before making an API call")

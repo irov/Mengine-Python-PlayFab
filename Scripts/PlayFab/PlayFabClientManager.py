@@ -211,9 +211,9 @@ class PlayFabClientManager(PlayFabBaseMethods):
     @staticmethod
     def scopeGetUserReadOnlyData(source, list_of_keys, success_cb, fail_cb, **error_handlers):
         source.addScope(PlayFabClientManager.scopePlayFabAPI,
-                        PlayFabClientManager.prepareGetUserReadOnlyData,
-                        list_of_keys,
-                        success_cb, fail_cb, **error_handlers)
+            PlayFabClientManager.prepareGetUserReadOnlyData,
+            list_of_keys,
+            success_cb, fail_cb, **error_handlers)
 
     # GetTitleData
     @staticmethod
@@ -252,7 +252,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
     # GetLeaderboard
     @staticmethod
     def prepareGetLeaderboard(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb,
-                              **error_handlers):
+        **error_handlers):
         @PlayFabClientManager.do_before_cb(success_cb)
         def __success_cb(response):
             Data = response.get("Leaderboard", {})
@@ -277,7 +277,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetLeaderboard(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb,
-                           **error_handlers):
+        **error_handlers):
         PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetLeaderboard,
             statistic_name, max_result_count, profile_constraints,
@@ -285,7 +285,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def scopeGetLeaderboard(source, statistic_name, max_result_count, profile_constraints, success_cb, fail_cb,
-                            **error_handlers):
+        **error_handlers):
         source.addScope(
             PlayFabClientManager.scopePlayFabAPI,
             PlayFabClientManager.prepareGetLeaderboard,
@@ -295,7 +295,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
     # GetLeaderboardAroundPlayer
     @staticmethod
     def prepareGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb,
-                                          **error_handlers):
+        **error_handlers):
         @PlayFabClientManager.do_before_cb(success_cb)
         def __success_cb(response):
             Data = response.get("Leaderboard", {})
@@ -320,7 +320,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb,
-                                       **error_handlers):
+        **error_handlers):
         PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetLeaderboardAroundPlayer,
             statistic_name, max_result_count, profile_constraints,
@@ -328,7 +328,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def scopeGetLeaderboardAroundPlayer(source, statistic_name, max_result_count, profile_constraints, success_cb,
-                                        fail_cb, **error_handlers):
+        fail_cb, **error_handlers):
         source.addScope(
             PlayFabClientManager.scopePlayFabAPI,
             PlayFabClientManager.prepareGetLeaderboardAroundPlayer,

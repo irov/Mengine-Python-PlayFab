@@ -239,7 +239,7 @@ class GameManager(Manager):
             # fl == first login, nfl == not first login
             with source_first_login.addIfTask(lambda: _ANDROID is True) as (fl_android, fl_not_android):
                 fl_android.addScope(GameManager.scopeLoginWithAndroidDeviceID,
-                                    android_device_id, semaphore_android_login, __success_cb)
+                    android_device_id, semaphore_android_login, __success_cb)
 
                 with fl_android.addRaceTask(2) as (fl_android_success_login, fl_android_fail_login):
                     fl_android_success_login.addSemaphore(semaphore_android_login, From=True)
@@ -249,14 +249,14 @@ class GameManager(Manager):
                     fl_android_fail_login.addPrint('GameManager.scopeLoginWithAndroidDeviceID time fl')
 
                     fl_android_fail_login.addScope(GameManager.scopeDefaultRegistration,
-                                                   __success_cb, __fail_cb, **error_handlers)
+                        __success_cb, __fail_cb, **error_handlers)
 
                 fl_not_android.addScope(GameManager.scopeDefaultRegistration,
-                                        __success_cb, __fail_cb, **error_handlers)
+                    __success_cb, __fail_cb, **error_handlers)
 
             with source_not_first_login.addIfTask(lambda: _ANDROID is True) as (nfl_android, nfl_not_android):
                 nfl_android.addScope(GameManager.scopeLoginWithAndroidDeviceID,
-                                     android_device_id, semaphore_android_login, __success_cb)
+                    android_device_id, semaphore_android_login, __success_cb)
 
                 with nfl_android.addRaceTask(2) as (nfl_android_success_login, nfl_android_fail_login):
                     nfl_android_success_login.addSemaphore(semaphore_android_login, From=True)
@@ -268,23 +268,22 @@ class GameManager(Manager):
                     # nfl_android_fail_login.addPrint('Name PSW {} {}'.format(Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password")))
 
                     nfl_android_fail_login.addScope(PlayFabManager.scopeLoginWithPlayFab,
-                                                    Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password"),
-                                                    __success_cb, __fail_cb, **error_handlers)
+                        Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password"),
+                        __success_cb, __fail_cb, **error_handlers)
 
                     # pf == PlayFab
                     with nfl_android_fail_login.addIfTask(lambda: nfl_android_fail_login is True) as (pf_login_success,
-                                                                                                      pf_login_fail):
+                    pf_login_fail):
                         pf_login_fail.addScope(GameManager.scopeDefaultRegistration,
-                                               __success_cb, __fail_cb, **error_handlers)
+                            __success_cb, __fail_cb, **error_handlers)
 
                 nfl_not_android.addScope(PlayFabManager.scopeLoginWithPlayFab,
-                                         Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password"),
-                                         __success_cb, __fail_cb, **error_handlers)
+                    Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password"),
+                    __success_cb, __fail_cb, **error_handlers)
         source.addPrint('Login finish')
 
     @staticmethod
     def scopeGetAccountInfo(source, isSuccessHolder=None):
-
         def __error(func):
             def __wrapper(*args, **kwargs):
                 func(*args, **kwargs)
@@ -386,8 +385,8 @@ class GameManager(Manager):
         }
 
         source.addScope(PlayFabManager.scopeUpdatePlayerStatistics,
-                        statistics,
-                        __success_cb, __fail_cb, **error_handlers)
+            statistics,
+            __success_cb, __fail_cb, **error_handlers)
 
     @staticmethod
     def scopeLoadStatistics(source, isSuccessHolder=None):
@@ -517,7 +516,6 @@ class GameManager(Manager):
 
     @staticmethod
     def scopeLoadTitleDataFromServer(source, isSuccessHolder=None, PrintTitleData=False, PrintRevision=True):
-
         PrintRevision = True
 
         title_data_keys = ["ProjectVersion"]

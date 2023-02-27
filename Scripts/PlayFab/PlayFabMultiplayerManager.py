@@ -97,12 +97,12 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
             :return: response
             """
             print("response", response)
-            
+
             return response
             pass
-            
+
         print("ticket_id, queue_name", ticket_id, queue_name)
-        
+
         return PlayFabMultiplayerManager.preparePlayFabAPI(
             PlayFabMultiplayerAPI.GetMatchmakingTicket,
             {
@@ -149,7 +149,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
                 ServerDetails - The details of the server that the match has been allocated to.
             :return:
             """
-            
+
             print("response")
             return response
         return PlayFabMultiplayerManager.preparePlayFabAPI(

@@ -45,11 +45,11 @@ class SystemMatchmaking(System):
             print("SystemMatchmaking fail_cb args", args)
 
         source.addScope(PlayFabManager.scopeCreateMatchmakingTicket,
-                        GIVE_UP_AFTER_SECONDS,
-                        QUEUE_1_VS_1_NAME,
-                        success_cb,
-                        fail_cb
-                        )
+            GIVE_UP_AFTER_SECONDS,
+            QUEUE_1_VS_1_NAME,
+            success_cb,
+            fail_cb
+        )
         source.addSemaphore(semaphore_ticket_created, From=True)
 
     def __scopeCheckTicketStatus(self, source):
@@ -72,11 +72,11 @@ class SystemMatchmaking(System):
 
         with source.addRepeatTask() as (source_repeat, source_until):
             source_repeat.addScope(PlayFabManager.scopeGetMatchmakingTicket,
-                                   ticket_id,
-                                   QUEUE_1_VS_1_NAME,
-                                   success_cb,
-                                   fail_cb
-                                   )
+                ticket_id,
+                QUEUE_1_VS_1_NAME,
+                success_cb,
+                fail_cb
+            )
             source_repeat.addDelay(6000)
 
             source_until.addSemaphore(semaphore_match_is_ready, From=True)
@@ -96,11 +96,11 @@ class SystemMatchmaking(System):
             pass
 
         source.addScope(PlayFabManager.scopeGetMatch,
-                        match_id,
-                        QUEUE_1_VS_1_NAME,
-                        success_cb,
-                        fail_cb
-                        )
+            match_id,
+            QUEUE_1_VS_1_NAME,
+            success_cb,
+            fail_cb
+        )
 
     def __cbCancelMatchSearch(self):
         ticket_id = self.tickets.get(QUEUE_1_VS_1_NAME)
