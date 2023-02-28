@@ -1,8 +1,8 @@
 import json
-
 import PlayFab.PlayFabErrors as PlayFabErrors
 import PlayFab.PlayFabSettings as PlayFabSettings
 from Foundation.TaskManager import TaskManager
+
 
 def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraHeaders=None):
     """
@@ -33,12 +33,13 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraH
 
     # Mengine http request
     headers = []
-    for key, value in requestHeaders.iteritems():  # convert headers dict to list (vector)
+    for key, value in requestHeaders.items():  # convert headers dict to list (vector)
         list_header = "{}: {}".format(key, value)
         headers.append(list_header)
 
     with TaskManager.createTaskChain() as source:
         source.addTask("TaskHeaderData", Url=url, Headers=headers, Data=j, Cb=__onHeaderData, Args=(callback,))
+
 
 def __httpResponseHandler(httpResponse, callback):
     error = response = None
@@ -101,6 +102,7 @@ def __httpResponseHandler(httpResponse, callback):
     elif callback:
         callback(None, None)
 
+
 class HttpResponseAdapter(object):
     class Content(object):
         def __init__(self, response):
@@ -114,10 +116,12 @@ class HttpResponseAdapter(object):
         self.reason = error
         self.content = HttpResponseAdapter.Content(response)
 
+
 def __onHeaderData(status, error, response, code, successful, callback):
     httpResponse = HttpResponseAdapter(error, response, code)
 
     __httpResponseHandler(httpResponse, callback)
+
 
 def callGlobalErrorHandler(error):
     if PlayFabSettings.GlobalErrorHandler:

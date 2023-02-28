@@ -1,3 +1,5 @@
+import sys
+import traceback
 import PlayFab.PlayFabErrors as PlayFabErrors
 
 ProductionEnvironmentURL = ".playfabapi.com"
@@ -98,11 +100,12 @@ def GetURL(methodUrl, getParams):
 
     return "".join(url)
 
+def DefaultExceptionLogger(exceptionObj):
+    print("Unexpected error:", sys.exc_info()[0])
+    traceback.print_exc()
+
 def MengineExceptionLogger(exceptionObj):
-    Trace.log("PlayFab", 0, "[PlayFab-PythonSDK] Exception:"
-                            "\n> {}".format(
-        exceptionObj
-    ))
+    Trace.log("PlayFab", 0, "[PlayFab-PythonSDK] Exception:\n> {}".format(exceptionObj))
 
 GlobalErrorHandler = None
 GlobalExceptionLogger = MengineExceptionLogger
