@@ -37,12 +37,14 @@ def onInitialize():
     from Foundation.AccountManager import AccountManager
 
     def accountSetuper(accountID, isGlobal):
-        print("accountSetuper", accountID)
+        if _DEVELOPMENT:
+            Trace.msg("accountSetuper", accountID)
+
         if isGlobal is True:
             return
 
         Mengine.addCurrentAccountSetting("PlayFabId", u"0", None)
-        Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)
+        Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)  # is PlayFab user registered
 
         Mengine.addCurrentAccountSetting("DisplayName", u"You", None)
         Mengine.addCurrentAccountSetting("Password", u"12345678", None)
@@ -50,7 +52,7 @@ def onInitialize():
     AccountManager.addCreateAccountExtra(accountSetuper)
 
     return True
-    pass
+
 
 def onFinalize():
     pass
