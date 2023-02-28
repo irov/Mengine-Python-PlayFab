@@ -37,9 +37,6 @@ def onInitialize():
     from Foundation.AccountManager import AccountManager
 
     def accountSetuper(accountID, isGlobal):
-        if _DEVELOPMENT:
-            Trace.msg("accountSetuper", accountID)
-
         if isGlobal is True:
             return
 
