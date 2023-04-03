@@ -314,47 +314,6 @@ class GameManager(Manager):
             __success_cb, __fail_cb, **error_handlers)
 
     @staticmethod
-    def scopeFacebookLogin(source, isSuccessHolder=None):
-        fb_access_token = AndroidFacebook.getAccessToken()
-
-        def __success_cb(response):
-            print("PlayFabManager.scopeLinkFacebookAccount __success_cb")
-            Mengine.changeCurrentAccountSetting("PlayFabId", response.get("PlayFabId"))
-            Mengine.changeCurrentAccountSetting("FirstLogin", u'False')
-
-            if isSuccessHolder is not None:
-                isSuccessHolder.setValue(True)
-            Mengine.saveAccounts()
-
-        def __fail_cb(error):
-            print('__fail_cb error', error)
-            # Trace.log("Manager", 0, error)
-            if isSuccessHolder is not None:
-                isSuccessHolder.setValue(False)
-
-        error_handlers = {
-            "EncryptionKeyMissing": __fail_cb,
-            "EvaluationModePlayerCountExceeded": __fail_cb,
-            "FacebookAPIError": __fail_cb,
-            "InvalidFacebookToken": __fail_cb,
-            "PlayerSecretAlreadyConfigured": __fail_cb,
-            "PlayerSecretNotConfigured": __fail_cb,
-            "RequestViewConstraintParamsNotAllowed": __fail_cb,
-        }
-
-        source.addScope(
-            PlayFabManager.scopeLoginFacebookAccount,
-            fb_access_token, False,
-            __success_cb, __fail_cb, **error_handlers)
-
-        with source.addIfTask(lambda: isSuccessHolder.getValue() is True) as (success, fail):
-            if Mengine.hasTouchpad():
-                android_id = Mengine.getAndroidId()
-                success.addScope(GameManager.scopeLinkAndroidDeviceID, android_id, True)
-            success.addDummy()
-            fail.addDummy()
-
-    @staticmethod
     def scopeUpdatePlayerStatistics(source, score):
         statistic_name = DefaultManager.getDefault("DefaultLeaderboardStatisticName", "general_score")
 
