@@ -2,11 +2,13 @@ import PlayFab.PlayFabErrors as PlayFabErrors
 import PlayFab.PlayFabHTTP as PlayFabHTTP
 import PlayFab.PlayFabSettings as PlayFabSettings
 
+
 """
 The Authentication APIs provide a convenient way to convert classic authentication responses into entity authentication
 models. These APIs will provide you with the entity authentication token needed for subsequent Entity API calls. Manage
 API keys for authenticating any entity.
 """
+
 
 def GetEntityToken(request, callback, customData=None, extraHeaders=None):
     """
@@ -28,11 +30,14 @@ def GetEntityToken(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Authentication/GetEntityToken", request, authKey, authValue, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Authentication/GetEntityToken", request, authKey, authValue, wrappedCallback,
+                       customData, extraHeaders)
+
 
 def ValidateEntityToken(request, callback, customData=None, extraHeaders=None):
     """
@@ -46,4 +51,6 @@ def ValidateEntityToken(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Authentication/ValidateEntityToken", request, "X-EntityToken", PlayFabSettings._internalSettings.EntityToken, wrappedCallback, customData, extraHeaders)
+    EntityToken = PlayFabSettings._internalSettings.EntityToken
+    PlayFabHTTP.DoPost("/Authentication/ValidateEntityToken", request, "X-EntityToken",
+                       EntityToken, wrappedCallback, customData, extraHeaders)

@@ -4,8 +4,10 @@ from Foundation.TaskManager import TaskManager
 
 from PlayFab.PlayFabManager import PlayFabManager
 
+
 QUEUE_1_VS_1_NAME = "queue_dots_1vs1"
 GIVE_UP_AFTER_SECONDS = 100
+
 
 class SystemMatchmaking(System):
 
@@ -44,7 +46,8 @@ class SystemMatchmaking(System):
         def fail_cb(*args):
             print("SystemMatchmaking fail_cb args", args)
 
-        source.addScope(PlayFabManager.scopeCreateMatchmakingTicket,
+        source.addScope(
+            PlayFabManager.scopeCreateMatchmakingTicket,    # fixme
             GIVE_UP_AFTER_SECONDS,
             QUEUE_1_VS_1_NAME,
             success_cb,
@@ -71,7 +74,8 @@ class SystemMatchmaking(System):
             return
 
         with source.addRepeatTask() as (source_repeat, source_until):
-            source_repeat.addScope(PlayFabManager.scopeGetMatchmakingTicket,
+            source_repeat.addScope(
+                PlayFabManager.scopeGetMatchmakingTicket,    # fixme
                 ticket_id,
                 QUEUE_1_VS_1_NAME,
                 success_cb,
@@ -95,7 +99,8 @@ class SystemMatchmaking(System):
             print("SystemMatchmaking fail_cb args", args[0].GenerateErrorReport())
             pass
 
-        source.addScope(PlayFabManager.scopeGetMatch,
+        source.addScope(
+            PlayFabManager.scopeGetMatch,    # fixme
             match_id,
             QUEUE_1_VS_1_NAME,
             success_cb,
@@ -113,7 +118,7 @@ class SystemMatchmaking(System):
         def internal_fail_cb(response):
             pass
 
-        PlayFabManager.callCancelMatchmakingTicket(
+        PlayFabManager.callCancelMatchmakingTicket(    # fixme
             ticket_id=ticket_id,
             queue_name=QUEUE_1_VS_1_NAME,
             success_cb=internal_success_cb,

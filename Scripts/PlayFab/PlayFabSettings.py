@@ -2,6 +2,7 @@ import sys
 import traceback
 import PlayFab.PlayFabErrors as PlayFabErrors
 
+
 ProductionEnvironmentURL = ".playfabapi.com"
 
 """
@@ -53,8 +54,10 @@ DisableAdvertising = False
 AD_TYPE_IDFA = "Idfa"
 AD_TYPE_ANDROID_ID = "Adid"
 
+
 class InternalSettings:
     pass
+
 
 _internalSettings = InternalSettings()
 
@@ -71,6 +74,7 @@ _internalSettings.SdkVersionString = "PythonSdk-0.0.181114"
 _internalSettings.RequestGetParams = {
     "sdk": _internalSettings.SdkVersionString
 }
+
 
 def GetURL(methodUrl, getParams):
     if not TitleId:
@@ -100,12 +104,15 @@ def GetURL(methodUrl, getParams):
 
     return "".join(url)
 
+
 def DefaultExceptionLogger(exceptionObj):
     print("Unexpected error:", sys.exc_info()[0])
     traceback.print_exc()
 
+
 def MengineExceptionLogger(exceptionObj):
     Trace.log("PlayFab", 0, "[PlayFab-PythonSDK] Exception:\n> {}".format(exceptionObj))
+
 
 GlobalErrorHandler = None
 GlobalExceptionLogger = MengineExceptionLogger

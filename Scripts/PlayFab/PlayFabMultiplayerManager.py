@@ -4,9 +4,11 @@ import PlayFab.PlayFabMultiplayerAPI as PlayFabMultiplayerAPI
 
 from PlayFabBaseMethods import PlayFabBaseMethods
 
+
 class PlayFabMultiplayerManager(PlayFabBaseMethods):
     @staticmethod
-    def prepareCreateMatchmakingTicket(title_player_id, give_up_after_second, queue_name, success_cb, fail_cb, **error_handlers):
+    def prepareCreateMatchmakingTicket(title_player_id, give_up_after_second, queue_name,
+                                       success_cb, fail_cb, **error_handlers):
         @PlayFabMultiplayerManager.do_before_cb(success_cb)
         def __success_cb(response):
             """ Повинно повернути TicketId який потім використовуємо для запиту інформацію
@@ -75,6 +77,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
         :param error_handlers:
         :return:
         """
+
         @PlayFabMultiplayerManager.do_before_cb(success_cb)
         def __success_cb(response):
             """
@@ -152,6 +155,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
 
             print("response")
             return response
+
         return PlayFabMultiplayerManager.preparePlayFabAPI(
             PlayFabMultiplayerAPI.GetMatch,
             {

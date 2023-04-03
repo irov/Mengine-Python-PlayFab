@@ -18,7 +18,7 @@ class PlayFabManager(Manager):
             data = dumps(data, indent=2)
 
         LINE_CHAR_COUNT = 79
-        Trace.msg("\n"+" {} ".format(msg).center(LINE_CHAR_COUNT, '#'))
+        Trace.msg("\n" + " {} ".format(msg).center(LINE_CHAR_COUNT, '#'))
 
         if DebugPlayFabResponseDataPrint is True:
             Trace.msg(data)
@@ -26,7 +26,7 @@ class PlayFabManager(Manager):
             Trace.msg("! PlayFab response data print is disabled.")
             Trace.msg("! For enable change default param 'DebugPlayFabResponseDataPrint' to True")
 
-        Trace.msg("".center(LINE_CHAR_COUNT, '#')+"\n")
+        Trace.msg("".center(LINE_CHAR_COUNT, '#') + "\n")
 
     # = INIT ============================================================================================================
     @staticmethod
@@ -153,7 +153,6 @@ class PlayFabManager(Manager):
                 modified_response = func(response)
                 cb(modified_response)
             return __wrapper
-
         return __real_decorator
 
     # = API ============================================================================================================
@@ -299,7 +298,7 @@ class PlayFabManager(Manager):
             PlayFabManager.scopePlayFabAPI,
             PlayFabManager.prepareUnLinkAndroidDeviceID,
             device_id,
-            success_cb, fail_cb,  **error_handlers)
+            success_cb, fail_cb, **error_handlers)
 
     # UpdateUserTitleDisplayName
     @staticmethod
@@ -366,9 +365,9 @@ class PlayFabManager(Manager):
     @staticmethod
     def scopeGetUserReadOnlyData(source, list_of_keys, success_cb, fail_cb, **error_handlers):
         source.addScope(PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareGetUserReadOnlyData,
-            list_of_keys,
-            success_cb, fail_cb, **error_handlers)
+                        PlayFabManager.prepareGetUserReadOnlyData,
+                        list_of_keys,
+                        success_cb, fail_cb, **error_handlers)
 
     # GetTitleData
     @staticmethod
@@ -406,7 +405,8 @@ class PlayFabManager(Manager):
 
     # GetLeaderboard
     @staticmethod
-    def prepareGetLeaderboard(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb, **error_handlers):
+    def prepareGetLeaderboard(statistic_name, max_result_count, profile_constraints,
+                              success_cb, fail_cb, **error_handlers):
         @PlayFabManager.do_before_cb(success_cb)
         def __success_cb(response):
             Data = response.get("Leaderboard", {})
@@ -430,14 +430,16 @@ class PlayFabManager(Manager):
             error_handlers)
 
     @staticmethod
-    def callGetLeaderboard(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb, **error_handlers):
+    def callGetLeaderboard(statistic_name, max_result_count, profile_constraints,
+                           success_cb, fail_cb, **error_handlers):
         PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetLeaderboard,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
-    def scopeGetLeaderboard(source, statistic_name, max_result_count, profile_constraints, success_cb, fail_cb, **error_handlers):
+    def scopeGetLeaderboard(source, statistic_name, max_result_count, profile_constraints,
+                            success_cb, fail_cb, **error_handlers):
         source.addScope(
             PlayFabManager.scopePlayFabAPI,
             PlayFabManager.prepareGetLeaderboard,
@@ -446,7 +448,8 @@ class PlayFabManager(Manager):
 
     # GetLeaderboardAroundPlayer
     @staticmethod
-    def prepareGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb, **error_handlers):
+    def prepareGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
+                                          success_cb, fail_cb, **error_handlers):
         @PlayFabManager.do_before_cb(success_cb)
         def __success_cb(response):
             Data = response.get("Leaderboard", {})
@@ -470,14 +473,16 @@ class PlayFabManager(Manager):
             error_handlers)
 
     @staticmethod
-    def callGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints, success_cb, fail_cb, **error_handlers):
+    def callGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
+                                       success_cb, fail_cb, **error_handlers):
         PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetLeaderboardAroundPlayer,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
-    def scopeGetLeaderboardAroundPlayer(source, statistic_name, max_result_count, profile_constraints, success_cb, fail_cb, **error_handlers):
+    def scopeGetLeaderboardAroundPlayer(source, statistic_name, max_result_count, profile_constraints,
+                                        success_cb, fail_cb, **error_handlers):
         source.addScope(
             PlayFabManager.scopePlayFabAPI,
             PlayFabManager.prepareGetLeaderboardAroundPlayer,

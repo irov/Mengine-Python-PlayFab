@@ -2,6 +2,7 @@ from Foundation.DefaultManager import DefaultManager
 from Foundation.Manager import Manager
 from PlayFab.PlayFabManager import PlayFabManager
 
+
 # todo: replace with PlayFab player data params
 STUFF_CELL_INDEX_START = 1
 ITEMS_MAX_COUNT = 3
@@ -11,6 +12,7 @@ BOOSTERS_MAX_COUNT = 4
 SERVER_STATUS_OK = 0
 SERVER_STATUS_FAIL = 1
 SERVER_STATUS_UPDATING = 2
+
 
 class GameManager(Manager):
     s_player_data_cache = {}
@@ -239,7 +241,7 @@ class GameManager(Manager):
             # fl == first login, nfl == not first login
             with source_first_login.addIfTask(lambda: _ANDROID is True) as (fl_android, fl_not_android):
                 fl_android.addScope(GameManager.scopeLoginWithAndroidDeviceID,
-                    android_device_id, semaphore_android_login, __success_cb)
+                                    android_device_id, semaphore_android_login, __success_cb)
 
                 with fl_android.addRaceTask(2) as (fl_android_success_login, fl_android_fail_login):
                     fl_android_success_login.addSemaphore(semaphore_android_login, From=True)
@@ -249,14 +251,14 @@ class GameManager(Manager):
                     fl_android_fail_login.addPrint('GameManager.scopeLoginWithAndroidDeviceID time fl')
 
                     fl_android_fail_login.addScope(GameManager.scopeDefaultRegistration,
-                        __success_cb, __fail_cb, **error_handlers)
+                                                   __success_cb, __fail_cb, **error_handlers)
 
                 fl_not_android.addScope(GameManager.scopeDefaultRegistration,
-                    __success_cb, __fail_cb, **error_handlers)
+                                        __success_cb, __fail_cb, **error_handlers)
 
             with source_not_first_login.addIfTask(lambda: _ANDROID is True) as (nfl_android, nfl_not_android):
                 nfl_android.addScope(GameManager.scopeLoginWithAndroidDeviceID,
-                    android_device_id, semaphore_android_login, __success_cb)
+                                     android_device_id, semaphore_android_login, __success_cb)
 
                 with nfl_android.addRaceTask(2) as (nfl_android_success_login, nfl_android_fail_login):
                     nfl_android_success_login.addSemaphore(semaphore_android_login, From=True)
@@ -268,18 +270,19 @@ class GameManager(Manager):
                     # nfl_android_fail_login.addPrint('Name PSW {} {}'.format(Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password")))
 
                     nfl_android_fail_login.addScope(PlayFabManager.scopeLoginWithPlayFab,
-                        Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password"),
-                        __success_cb, __fail_cb, **error_handlers)
+                                                    Mengine.getCurrentAccountSetting("Name"),
+                                                    Mengine.getCurrentAccountSetting("Password"),
+                                                    __success_cb, __fail_cb, **error_handlers)
 
                     # pf == PlayFab
-                    with nfl_android_fail_login.addIfTask(lambda: nfl_android_fail_login is True) as (pf_login_success,
-                    pf_login_fail):
+                    with nfl_android_fail_login.addIfTask(lambda: nfl_android_fail_login is True) as (pf_login_success, pf_login_fail):
                         pf_login_fail.addScope(GameManager.scopeDefaultRegistration,
-                            __success_cb, __fail_cb, **error_handlers)
+                                               __success_cb, __fail_cb, **error_handlers)
 
                 nfl_not_android.addScope(PlayFabManager.scopeLoginWithPlayFab,
-                    Mengine.getCurrentAccountSetting("Name"), Mengine.getCurrentAccountSetting("Password"),
-                    __success_cb, __fail_cb, **error_handlers)
+                                         Mengine.getCurrentAccountSetting("Name"),
+                                         Mengine.getCurrentAccountSetting("Password"),
+                                         __success_cb, __fail_cb, **error_handlers)
         source.addPrint('Login finish')
 
     @staticmethod
@@ -343,9 +346,8 @@ class GameManager(Manager):
             "ServiceUnavailable": __fail_cb,
         }
 
-        source.addScope(PlayFabManager.scopeUpdatePlayerStatistics,
-            statistics,
-            __success_cb, __fail_cb, **error_handlers)
+        source.addScope(PlayFabManager.scopeUpdatePlayerStatistics, statistics,
+                        __success_cb, __fail_cb, **error_handlers)
 
     @staticmethod
     def scopeLoadStatistics(source, isSuccessHolder=None):
@@ -478,6 +480,7 @@ class GameManager(Manager):
         PrintRevision = True
 
         title_data_keys = ["ProjectVersion"]
+
         def __success_cb(data):
             if len(data) == 0:  # try again
                 print(" DATA IS EMPTY - TRY AGAIN ".center(100, "A"))

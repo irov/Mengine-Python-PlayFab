@@ -2,14 +2,17 @@ import PlayFab.PlayFabErrors as PlayFabErrors
 import PlayFab.PlayFabHTTP as PlayFabHTTP
 import PlayFab.PlayFabSettings as PlayFabSettings
 
+
 """
 APIs which provide the full range of PlayFab features available to the client - authentication, account and data
 management, inventory, friends, matchmaking, reporting, and platform-specific functionality
 """
 
+
 def IsClientLoggedIn():
     """Determine if the client session ticket is set, without actually making it public"""
     return bool(PlayFabSettings._internalSettings.ClientSessionTicket)
+
 
 def MultiStepClientLogin(settingsForUser):
     disabledAds = PlayFabSettings.DisableAdvertising
@@ -23,6 +26,7 @@ def MultiStepClientLogin(settingsForUser):
         elif adIdType == PlayFabSettings.AD_TYPE_ANDROID_ID:
             request["Adid"] = adIdVal
         AttributeInstall(request, None)
+
 
 def AcceptTrade(request, callback, customData=None, extraHeaders=None):
     """
@@ -38,7 +42,9 @@ def AcceptTrade(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AcceptTrade", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AcceptTrade", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AddFriend(request, callback, customData=None, extraHeaders=None):
     """
@@ -53,7 +59,9 @@ def AddFriend(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AddFriend", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AddFriend", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AddGenericID(request, callback, customData=None, extraHeaders=None):
     """
@@ -69,7 +77,9 @@ def AddGenericID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AddGenericID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AddGenericID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AddOrUpdateContactEmail(request, callback, customData=None, extraHeaders=None):
     """
@@ -83,7 +93,9 @@ def AddOrUpdateContactEmail(request, callback, customData=None, extraHeaders=Non
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AddOrUpdateContactEmail", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AddOrUpdateContactEmail", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AddSharedGroupMembers(request, callback, customData=None, extraHeaders=None):
     """
@@ -99,7 +111,9 @@ def AddSharedGroupMembers(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AddSharedGroupMembers", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AddSharedGroupMembers", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AddUsernamePassword(request, callback, customData=None, extraHeaders=None):
     """
@@ -114,7 +128,9 @@ def AddUsernamePassword(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AddUsernamePassword", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AddUsernamePassword", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AddUserVirtualCurrency(request, callback, customData=None, extraHeaders=None):
     """
@@ -128,7 +144,9 @@ def AddUserVirtualCurrency(request, callback, customData=None, extraHeaders=None
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AddUserVirtualCurrency", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AddUserVirtualCurrency", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AndroidDevicePushNotificationRegistration(request, callback, customData=None, extraHeaders=None):
     """
@@ -142,7 +160,9 @@ def AndroidDevicePushNotificationRegistration(request, callback, customData=None
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AndroidDevicePushNotificationRegistration", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AndroidDevicePushNotificationRegistration", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def AttributeInstall(request, callback, customData=None, extraHeaders=None):
     """
@@ -153,12 +173,16 @@ def AttributeInstall(request, callback, customData=None, extraHeaders=None):
         raise PlayFabErrors.PlayFabException("Must be logged in to call this method")
 
     def wrappedCallback(playFabResult, error):
-        # Modify AdvertisingIdType:  Prevents us from sending the id multiple times, and allows automated tests to determine id was sent successfully
+        # Modify AdvertisingIdType:
+        # Prevents us from sending the id multiple times,
+        # and allows automated tests to determine id was sent successfully
         PlayFabSettings.AdvertisingIdType += "_Successful"
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/AttributeInstall", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/AttributeInstall", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def CancelTrade(request, callback, customData=None, extraHeaders=None):
     """
@@ -174,7 +198,9 @@ def CancelTrade(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/CancelTrade", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/CancelTrade", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ConfirmPurchase(request, callback, customData=None, extraHeaders=None):
     """
@@ -189,7 +215,9 @@ def ConfirmPurchase(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ConfirmPurchase", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ConfirmPurchase", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ConsumeItem(request, callback, customData=None, extraHeaders=None):
     """
@@ -203,12 +231,14 @@ def ConsumeItem(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ConsumeItem", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ConsumeItem", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ConsumeXboxEntitlements(request, callback, customData=None, extraHeaders=None):
     """
-    Grants the player's current entitlements from Xbox Live, consuming all availble items in Xbox and granting them to the
-    player's PlayFab inventory. This call is idempotent and will not grant previously granted items to the player.
+    Grants the player's current entitlements from Xbox Live, consuming all available items in Xbox and granting them to
+    the player's PlayFab inventory. This call is idempotent and will not grant previously granted items to the player.
     https://api.playfab.com/documentation/client/method/ConsumeXboxEntitlements
     """
     if not PlayFabSettings._internalSettings.ClientSessionTicket:
@@ -218,13 +248,15 @@ def ConsumeXboxEntitlements(request, callback, customData=None, extraHeaders=Non
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ConsumeXboxEntitlements", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ConsumeXboxEntitlements", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def CreateSharedGroup(request, callback, customData=None, extraHeaders=None):
     """
-    Requests the creation of a shared group object, containing key/value pairs which may be updated by all members of the
-    group. Upon creation, the current user will be the only member of the group. Shared Groups are designed for sharing data
-    between a very small number of players, please see our guide:
+    Requests the creation of a shared group object, containing key/value pairs which may be updated by all members of
+    the group. Upon creation, the current user will be the only member of the group. Shared Groups are designed for
+    sharing data between a very small number of players, please see our guide:
     https://api.playfab.com/docs/tutorials/landing-players/shared-groups
     https://api.playfab.com/documentation/client/method/CreateSharedGroup
     """
@@ -235,7 +267,9 @@ def CreateSharedGroup(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/CreateSharedGroup", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/CreateSharedGroup", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ExecuteCloudScript(request, callback, customData=None, extraHeaders=None):
     """
@@ -249,7 +283,9 @@ def ExecuteCloudScript(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ExecuteCloudScript", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ExecuteCloudScript", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetAccountInfo(request, callback, customData=None, extraHeaders=None):
     """
@@ -263,12 +299,14 @@ def GetAccountInfo(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetAccountInfo", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetAccountInfo", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetAllUsersCharacters(request, callback, customData=None, extraHeaders=None):
     """
-    Lists all of the characters that belong to a specific user. CharacterIds are not globally unique; characterId must be
-    evaluated with the parent PlayFabId to guarantee uniqueness.
+    Lists all of the characters that belong to a specific user. CharacterIds are not globally unique; characterId must
+    be evaluated with the parent PlayFabId to guarantee uniqueness.
     https://api.playfab.com/documentation/client/method/GetAllUsersCharacters
     """
     if not PlayFabSettings._internalSettings.ClientSessionTicket:
@@ -278,7 +316,9 @@ def GetAllUsersCharacters(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetAllUsersCharacters", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetAllUsersCharacters", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCatalogItems(request, callback, customData=None, extraHeaders=None):
     """
@@ -292,7 +332,9 @@ def GetCatalogItems(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCatalogItems", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCatalogItems", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCharacterData(request, callback, customData=None, extraHeaders=None):
     """
@@ -306,7 +348,9 @@ def GetCharacterData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCharacterData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCharacterData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCharacterInventory(request, callback, customData=None, extraHeaders=None):
     """
@@ -320,7 +364,9 @@ def GetCharacterInventory(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCharacterInventory", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCharacterInventory", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCharacterLeaderboard(request, callback, customData=None, extraHeaders=None):
     """
@@ -334,7 +380,9 @@ def GetCharacterLeaderboard(request, callback, customData=None, extraHeaders=Non
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCharacterLeaderboard", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCharacterLeaderboard", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCharacterReadOnlyData(request, callback, customData=None, extraHeaders=None):
     """
@@ -348,7 +396,9 @@ def GetCharacterReadOnlyData(request, callback, customData=None, extraHeaders=No
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCharacterReadOnlyData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCharacterReadOnlyData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCharacterStatistics(request, callback, customData=None, extraHeaders=None):
     """
@@ -362,7 +412,9 @@ def GetCharacterStatistics(request, callback, customData=None, extraHeaders=None
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCharacterStatistics", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCharacterStatistics", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetContentDownloadUrl(request, callback, customData=None, extraHeaders=None):
     """
@@ -381,7 +433,9 @@ def GetContentDownloadUrl(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetContentDownloadUrl", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetContentDownloadUrl", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetCurrentGames(request, callback, customData=None, extraHeaders=None):
     """
@@ -395,12 +449,14 @@ def GetCurrentGames(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetCurrentGames", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetCurrentGames", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetFriendLeaderboard(request, callback, customData=None, extraHeaders=None):
     """
-    Retrieves a list of ranked friends of the current player for the given statistic, starting from the indicated point in
-    the leaderboard
+    Retrieves a list of ranked friends of the current player for the given statistic, starting from the indicated point
+    in the leaderboard
     https://api.playfab.com/documentation/client/method/GetFriendLeaderboard
     """
     if not PlayFabSettings._internalSettings.ClientSessionTicket:
@@ -410,7 +466,9 @@ def GetFriendLeaderboard(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetFriendLeaderboard", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetFriendLeaderboard", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetFriendLeaderboardAroundPlayer(request, callback, customData=None, extraHeaders=None):
     """
@@ -425,7 +483,9 @@ def GetFriendLeaderboardAroundPlayer(request, callback, customData=None, extraHe
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetFriendLeaderboardAroundPlayer", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetFriendLeaderboardAroundPlayer", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetFriendsList(request, callback, customData=None, extraHeaders=None):
     """
@@ -440,7 +500,9 @@ def GetFriendsList(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetFriendsList", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetFriendsList", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetGameServerRegions(request, callback, customData=None, extraHeaders=None):
     """
@@ -454,7 +516,9 @@ def GetGameServerRegions(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetGameServerRegions", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetGameServerRegions", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetLeaderboard(request, callback, customData=None, extraHeaders=None):
     """
@@ -468,7 +532,9 @@ def GetLeaderboard(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetLeaderboard", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetLeaderboard", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetLeaderboardAroundCharacter(request, callback, customData=None, extraHeaders=None):
     """
@@ -482,7 +548,9 @@ def GetLeaderboardAroundCharacter(request, callback, customData=None, extraHeade
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetLeaderboardAroundCharacter", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetLeaderboardAroundCharacter", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetLeaderboardAroundPlayer(request, callback, customData=None, extraHeaders=None):
     """
@@ -497,7 +565,9 @@ def GetLeaderboardAroundPlayer(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetLeaderboardAroundPlayer", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetLeaderboardAroundPlayer", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetLeaderboardForUserCharacters(request, callback, customData=None, extraHeaders=None):
     """
@@ -511,7 +581,9 @@ def GetLeaderboardForUserCharacters(request, callback, customData=None, extraHea
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetLeaderboardForUserCharacters", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetLeaderboardForUserCharacters", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPaymentToken(request, callback, customData=None, extraHeaders=None):
     """
@@ -527,7 +599,9 @@ def GetPaymentToken(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPaymentToken", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPaymentToken", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPhotonAuthenticationToken(request, callback, customData=None, extraHeaders=None):
     """
@@ -542,7 +616,9 @@ def GetPhotonAuthenticationToken(request, callback, customData=None, extraHeader
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPhotonAuthenticationToken", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPhotonAuthenticationToken", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerCombinedInfo(request, callback, customData=None, extraHeaders=None):
     """
@@ -556,7 +632,9 @@ def GetPlayerCombinedInfo(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerCombinedInfo", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerCombinedInfo", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerProfile(request, callback, customData=None, extraHeaders=None):
     """
@@ -570,7 +648,9 @@ def GetPlayerProfile(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerProfile", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerProfile", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerSegments(request, callback, customData=None, extraHeaders=None):
     """
@@ -584,12 +664,14 @@ def GetPlayerSegments(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerSegments", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerSegments", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerStatistics(request, callback, customData=None, extraHeaders=None):
     """
-    Retrieves the indicated statistics (current version and values for all statistics, if none are specified), for the local
-    player.
+    Retrieves the indicated statistics (current version and values for all statistics, if none are specified),
+    for the local player.
     https://api.playfab.com/documentation/client/method/GetPlayerStatistics
     """
     if not PlayFabSettings._internalSettings.ClientSessionTicket:
@@ -599,7 +681,9 @@ def GetPlayerStatistics(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerStatistics", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerStatistics", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerStatisticVersions(request, callback, customData=None, extraHeaders=None):
     """
@@ -613,7 +697,9 @@ def GetPlayerStatisticVersions(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerStatisticVersions", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerStatisticVersions", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerTags(request, callback, customData=None, extraHeaders=None):
     """
@@ -627,7 +713,9 @@ def GetPlayerTags(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerTags", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerTags", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayerTrades(request, callback, customData=None, extraHeaders=None):
     """
@@ -641,7 +729,9 @@ def GetPlayerTrades(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayerTrades", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayerTrades", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromFacebookIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -655,7 +745,9 @@ def GetPlayFabIDsFromFacebookIDs(request, callback, customData=None, extraHeader
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromFacebookIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromFacebookIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromFacebookInstantGamesIds(request, callback, customData=None, extraHeaders=None):
     """
@@ -669,7 +761,9 @@ def GetPlayFabIDsFromFacebookInstantGamesIds(request, callback, customData=None,
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromFacebookInstantGamesIds", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromFacebookInstantGamesIds", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromGameCenterIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -684,7 +778,9 @@ def GetPlayFabIDsFromGameCenterIDs(request, callback, customData=None, extraHead
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromGameCenterIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromGameCenterIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromGenericIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -700,7 +796,9 @@ def GetPlayFabIDsFromGenericIDs(request, callback, customData=None, extraHeaders
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromGenericIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromGenericIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromGoogleIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -715,7 +813,9 @@ def GetPlayFabIDsFromGoogleIDs(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromGoogleIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromGoogleIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromKongregateIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -731,7 +831,9 @@ def GetPlayFabIDsFromKongregateIDs(request, callback, customData=None, extraHead
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromKongregateIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromKongregateIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromNintendoSwitchDeviceIds(request, callback, customData=None, extraHeaders=None):
     """
@@ -745,7 +847,9 @@ def GetPlayFabIDsFromNintendoSwitchDeviceIds(request, callback, customData=None,
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromNintendoSwitchDeviceIds", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromNintendoSwitchDeviceIds", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromSteamIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -760,7 +864,9 @@ def GetPlayFabIDsFromSteamIDs(request, callback, customData=None, extraHeaders=N
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromSteamIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromSteamIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromTwitchIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -776,7 +882,9 @@ def GetPlayFabIDsFromTwitchIDs(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromTwitchIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromTwitchIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPlayFabIDsFromXboxLiveIDs(request, callback, customData=None, extraHeaders=None):
     """
@@ -790,7 +898,9 @@ def GetPlayFabIDsFromXboxLiveIDs(request, callback, customData=None, extraHeader
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromXboxLiveIDs", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPlayFabIDsFromXboxLiveIDs", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPublisherData(request, callback, customData=None, extraHeaders=None):
     """
@@ -804,7 +914,9 @@ def GetPublisherData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPublisherData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPublisherData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetPurchase(request, callback, customData=None, extraHeaders=None):
     """
@@ -819,7 +931,9 @@ def GetPurchase(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetPurchase", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetPurchase", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetSharedGroupData(request, callback, customData=None, extraHeaders=None):
     """
@@ -836,7 +950,9 @@ def GetSharedGroupData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetSharedGroupData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetSharedGroupData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetStoreItems(request, callback, customData=None, extraHeaders=None):
     """
@@ -850,7 +966,9 @@ def GetStoreItems(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetStoreItems", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetStoreItems", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetTime(request, callback, customData=None, extraHeaders=None):
     """
@@ -864,7 +982,9 @@ def GetTime(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetTime", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetTime", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetTitleData(request, callback, customData=None, extraHeaders=None):
     """
@@ -878,7 +998,9 @@ def GetTitleData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetTitleData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetTitleData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetTitleNews(request, callback, customData=None, extraHeaders=None):
     """
@@ -892,18 +1014,22 @@ def GetTitleNews(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetTitleNews", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetTitleNews", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetTitlePublicKey(request, callback, customData=None, extraHeaders=None):
     """
     Returns the title's base 64 encoded RSA CSP blob.
     https://api.playfab.com/documentation/client/method/GetTitlePublicKey
     """
+
     def wrappedCallback(playFabResult, error):
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/GetTitlePublicKey", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def GetTradeStatus(request, callback, customData=None, extraHeaders=None):
     """
@@ -917,7 +1043,9 @@ def GetTradeStatus(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetTradeStatus", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetTradeStatus", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetUserData(request, callback, customData=None, extraHeaders=None):
     """
@@ -931,7 +1059,9 @@ def GetUserData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetUserData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetUserData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetUserInventory(request, callback, customData=None, extraHeaders=None):
     """
@@ -945,7 +1075,9 @@ def GetUserInventory(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetUserInventory", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetUserInventory", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetUserPublisherData(request, callback, customData=None, extraHeaders=None):
     """
@@ -959,7 +1091,9 @@ def GetUserPublisherData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetUserPublisherData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetUserPublisherData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetUserPublisherReadOnlyData(request, callback, customData=None, extraHeaders=None):
     """
@@ -973,7 +1107,9 @@ def GetUserPublisherReadOnlyData(request, callback, customData=None, extraHeader
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetUserPublisherReadOnlyData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetUserPublisherReadOnlyData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetUserReadOnlyData(request, callback, customData=None, extraHeaders=None):
     """
@@ -987,18 +1123,23 @@ def GetUserReadOnlyData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetUserReadOnlyData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetUserReadOnlyData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def GetWindowsHelloChallenge(request, callback, customData=None, extraHeaders=None):
     """
     Requests a challenge from the server to be signed by Windows Hello Passport service to authenticate.
     https://api.playfab.com/documentation/client/method/GetWindowsHelloChallenge
     """
+
     def wrappedCallback(playFabResult, error):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GetWindowsHelloChallenge", request, None, None, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GetWindowsHelloChallenge", request, None, None, wrappedCallback, customData,
+                       extraHeaders)
+
 
 def GrantCharacterToUser(request, callback, customData=None, extraHeaders=None):
     """
@@ -1013,7 +1154,9 @@ def GrantCharacterToUser(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/GrantCharacterToUser", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/GrantCharacterToUser", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkAndroidDeviceID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1027,7 +1170,9 @@ def LinkAndroidDeviceID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkAndroidDeviceID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkAndroidDeviceID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkCustomID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1041,7 +1186,9 @@ def LinkCustomID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkCustomID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkCustomID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkFacebookAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1055,7 +1202,9 @@ def LinkFacebookAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkFacebookAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkFacebookAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkFacebookInstantGamesId(request, callback, customData=None, extraHeaders=None):
     """
@@ -1069,7 +1218,9 @@ def LinkFacebookInstantGamesId(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkFacebookInstantGamesId", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkFacebookInstantGamesId", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkGameCenterAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1083,7 +1234,9 @@ def LinkGameCenterAccount(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkGameCenterAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkGameCenterAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkGoogleAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1097,7 +1250,9 @@ def LinkGoogleAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkGoogleAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkGoogleAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkIOSDeviceID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1111,7 +1266,9 @@ def LinkIOSDeviceID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkIOSDeviceID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkIOSDeviceID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkKongregate(request, callback, customData=None, extraHeaders=None):
     """
@@ -1125,7 +1282,9 @@ def LinkKongregate(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkKongregate", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkKongregate", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkNintendoSwitchDeviceId(request, callback, customData=None, extraHeaders=None):
     """
@@ -1139,7 +1298,9 @@ def LinkNintendoSwitchDeviceId(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkNintendoSwitchDeviceId", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkNintendoSwitchDeviceId", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkOpenIdConnect(request, callback, customData=None, extraHeaders=None):
     """
@@ -1154,7 +1315,9 @@ def LinkOpenIdConnect(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkOpenIdConnect", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkOpenIdConnect", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkSteamAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1168,7 +1331,9 @@ def LinkSteamAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkSteamAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkSteamAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkTwitch(request, callback, customData=None, extraHeaders=None):
     """
@@ -1182,7 +1347,9 @@ def LinkTwitch(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkTwitch", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkTwitch", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkWindowsHello(request, callback, customData=None, extraHeaders=None):
     """
@@ -1196,7 +1363,9 @@ def LinkWindowsHello(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkWindowsHello", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkWindowsHello", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LinkXboxAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1210,7 +1379,9 @@ def LinkXboxAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LinkXboxAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LinkXboxAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithAndroidDeviceID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1224,13 +1395,16 @@ def LoginWithAndroidDeviceID(request, callback, customData=None, extraHeaders=No
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithAndroidDeviceID", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithCustomID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1244,13 +1418,16 @@ def LoginWithCustomID(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithCustomID", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithEmailAddress(request, callback, customData=None, extraHeaders=None):
     """
@@ -1266,13 +1443,16 @@ def LoginWithEmailAddress(request, callback, customData=None, extraHeaders=None)
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithEmailAddress", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithFacebook(request, callback, customData=None, extraHeaders=None):
     """
@@ -1286,13 +1466,16 @@ def LoginWithFacebook(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithFacebook", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithFacebookInstantGamesId(request, callback, customData=None, extraHeaders=None):
     """
@@ -1306,13 +1489,16 @@ def LoginWithFacebookInstantGamesId(request, callback, customData=None, extraHea
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithFacebookInstantGamesId", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithGameCenter(request, callback, customData=None, extraHeaders=None):
     """
@@ -1326,13 +1512,16 @@ def LoginWithGameCenter(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithGameCenter", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithGoogleAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1345,13 +1534,16 @@ def LoginWithGoogleAccount(request, callback, customData=None, extraHeaders=None
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithGoogleAccount", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithIOSDeviceID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1365,13 +1557,16 @@ def LoginWithIOSDeviceID(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithIOSDeviceID", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithKongregate(request, callback, customData=None, extraHeaders=None):
     """
@@ -1384,13 +1579,16 @@ def LoginWithKongregate(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithKongregate", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithNintendoSwitchDeviceId(request, callback, customData=None, extraHeaders=None):
     """
@@ -1404,13 +1602,17 @@ def LoginWithNintendoSwitchDeviceId(request, callback, customData=None, extraHea
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/LoginWithNintendoSwitchDeviceId", request, None, None, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/LoginWithNintendoSwitchDeviceId", request, None, None, wrappedCallback, customData,
+                       extraHeaders)
+
 
 def LoginWithOpenIdConnect(request, callback, customData=None, extraHeaders=None):
     """
@@ -1424,13 +1626,16 @@ def LoginWithOpenIdConnect(request, callback, customData=None, extraHeaders=None
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithOpenIdConnect", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithPlayFab(request, callback, customData=None, extraHeaders=None):
     """
@@ -1446,13 +1651,16 @@ def LoginWithPlayFab(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithPlayFab", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithSteam(request, callback, customData=None, extraHeaders=None):
     """
@@ -1466,13 +1674,16 @@ def LoginWithSteam(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithSteam", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithTwitch(request, callback, customData=None, extraHeaders=None):
     """
@@ -1485,13 +1696,16 @@ def LoginWithTwitch(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithTwitch", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithWindowsHello(request, callback, customData=None, extraHeaders=None):
     """
@@ -1507,13 +1721,16 @@ def LoginWithWindowsHello(request, callback, customData=None, extraHeaders=None)
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithWindowsHello", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def LoginWithXbox(request, callback, customData=None, extraHeaders=None):
     """
@@ -1527,13 +1744,16 @@ def LoginWithXbox(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/LoginWithXbox", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def Matchmake(request, callback, customData=None, extraHeaders=None):
     """
@@ -1552,7 +1772,9 @@ def Matchmake(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/Matchmake", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/Matchmake", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def OpenTrade(request, callback, customData=None, extraHeaders=None):
     """
@@ -1566,7 +1788,9 @@ def OpenTrade(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/OpenTrade", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/OpenTrade", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def PayForPurchase(request, callback, customData=None, extraHeaders=None):
     """
@@ -1580,7 +1804,9 @@ def PayForPurchase(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/PayForPurchase", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/PayForPurchase", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def PurchaseItem(request, callback, customData=None, extraHeaders=None):
     """
@@ -1595,7 +1821,9 @@ def PurchaseItem(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/PurchaseItem", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/PurchaseItem", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RedeemCoupon(request, callback, customData=None, extraHeaders=None):
     """
@@ -1610,7 +1838,9 @@ def RedeemCoupon(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RedeemCoupon", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RedeemCoupon", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RegisterForIOSPushNotification(request, callback, customData=None, extraHeaders=None):
     """
@@ -1624,7 +1854,9 @@ def RegisterForIOSPushNotification(request, callback, customData=None, extraHead
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RegisterForIOSPushNotification", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RegisterForIOSPushNotification", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RegisterPlayFabUser(request, callback, customData=None, extraHeaders=None):
     """
@@ -1638,12 +1870,14 @@ def RegisterPlayFabUser(request, callback, customData=None, extraHeaders=None):
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/RegisterPlayFabUser", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def RegisterWithWindowsHello(request, callback, customData=None, extraHeaders=None):
     """
@@ -1657,13 +1891,16 @@ def RegisterWithWindowsHello(request, callback, customData=None, extraHeaders=No
 
     def wrappedCallback(playFabResult, error):
         if playFabResult:
-            PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"] if "SessionTicket" in playFabResult else PlayFabSettings._internalSettings.ClientSessionTicket
-            PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"] if "EntityToken" in playFabResult else PlayFabSettings._internalSettings.EntityToken
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
             MultiStepClientLogin(playFabResult.get("SettingsForUser"))
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/RegisterWithWindowsHello", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def RemoveContactEmail(request, callback, customData=None, extraHeaders=None):
     """
@@ -1677,7 +1914,9 @@ def RemoveContactEmail(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RemoveContactEmail", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RemoveContactEmail", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RemoveFriend(request, callback, customData=None, extraHeaders=None):
     """
@@ -1691,7 +1930,9 @@ def RemoveFriend(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RemoveFriend", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RemoveFriend", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RemoveGenericID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1705,7 +1946,9 @@ def RemoveGenericID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RemoveGenericID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RemoveGenericID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RemoveSharedGroupMembers(request, callback, customData=None, extraHeaders=None):
     """
@@ -1722,7 +1965,9 @@ def RemoveSharedGroupMembers(request, callback, customData=None, extraHeaders=No
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RemoveSharedGroupMembers", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RemoveSharedGroupMembers", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ReportDeviceInfo(request, callback, customData=None, extraHeaders=None):
     """
@@ -1737,7 +1982,9 @@ def ReportDeviceInfo(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ReportDeviceInfo", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ReportDeviceInfo", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ReportPlayer(request, callback, customData=None, extraHeaders=None):
     """
@@ -1752,7 +1999,9 @@ def ReportPlayer(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ReportPlayer", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ReportPlayer", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def RestoreIOSPurchases(request, callback, customData=None, extraHeaders=None):
     """
@@ -1766,7 +2015,9 @@ def RestoreIOSPurchases(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/RestoreIOSPurchases", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/RestoreIOSPurchases", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def SendAccountRecoveryEmail(request, callback, customData=None, extraHeaders=None):
     """
@@ -1775,11 +2026,13 @@ def SendAccountRecoveryEmail(request, callback, customData=None, extraHeaders=No
     be used.
     https://api.playfab.com/documentation/client/method/SendAccountRecoveryEmail
     """
+
     def wrappedCallback(playFabResult, error):
         if callback:
             callback(playFabResult, error)
 
     PlayFabHTTP.DoPost("/Client/SendAccountRecoveryEmail", request, None, None, wrappedCallback, customData, extraHeaders)
+
 
 def SetFriendTags(request, callback, customData=None, extraHeaders=None):
     """
@@ -1793,7 +2046,9 @@ def SetFriendTags(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/SetFriendTags", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/SetFriendTags", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def SetPlayerSecret(request, callback, customData=None, extraHeaders=None):
     """
@@ -1808,7 +2063,9 @@ def SetPlayerSecret(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/SetPlayerSecret", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/SetPlayerSecret", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def StartGame(request, callback, customData=None, extraHeaders=None):
     """
@@ -1822,7 +2079,9 @@ def StartGame(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/StartGame", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/StartGame", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def StartPurchase(request, callback, customData=None, extraHeaders=None):
     """
@@ -1836,7 +2095,9 @@ def StartPurchase(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/StartPurchase", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/StartPurchase", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def SubtractUserVirtualCurrency(request, callback, customData=None, extraHeaders=None):
     """
@@ -1851,7 +2112,9 @@ def SubtractUserVirtualCurrency(request, callback, customData=None, extraHeaders
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/SubtractUserVirtualCurrency", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/SubtractUserVirtualCurrency", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkAndroidDeviceID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1865,7 +2128,9 @@ def UnlinkAndroidDeviceID(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkAndroidDeviceID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkAndroidDeviceID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkCustomID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1879,7 +2144,9 @@ def UnlinkCustomID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkCustomID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkCustomID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkFacebookAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1893,7 +2160,9 @@ def UnlinkFacebookAccount(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkFacebookAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkFacebookAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkFacebookInstantGamesId(request, callback, customData=None, extraHeaders=None):
     """
@@ -1907,7 +2176,9 @@ def UnlinkFacebookInstantGamesId(request, callback, customData=None, extraHeader
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkFacebookInstantGamesId", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkFacebookInstantGamesId", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkGameCenterAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1921,7 +2192,9 @@ def UnlinkGameCenterAccount(request, callback, customData=None, extraHeaders=Non
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkGameCenterAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkGameCenterAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkGoogleAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -1936,7 +2209,9 @@ def UnlinkGoogleAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkGoogleAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkGoogleAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkIOSDeviceID(request, callback, customData=None, extraHeaders=None):
     """
@@ -1950,7 +2225,9 @@ def UnlinkIOSDeviceID(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkIOSDeviceID", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkIOSDeviceID", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkKongregate(request, callback, customData=None, extraHeaders=None):
     """
@@ -1964,7 +2241,9 @@ def UnlinkKongregate(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkKongregate", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkKongregate", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkNintendoSwitchDeviceId(request, callback, customData=None, extraHeaders=None):
     """
@@ -1978,7 +2257,9 @@ def UnlinkNintendoSwitchDeviceId(request, callback, customData=None, extraHeader
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkNintendoSwitchDeviceId", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkNintendoSwitchDeviceId", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkOpenIdConnect(request, callback, customData=None, extraHeaders=None):
     """
@@ -1993,7 +2274,9 @@ def UnlinkOpenIdConnect(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkOpenIdConnect", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkOpenIdConnect", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkSteamAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -2007,7 +2290,9 @@ def UnlinkSteamAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkSteamAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkSteamAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkTwitch(request, callback, customData=None, extraHeaders=None):
     """
@@ -2021,7 +2306,9 @@ def UnlinkTwitch(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkTwitch", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkTwitch", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkWindowsHello(request, callback, customData=None, extraHeaders=None):
     """
@@ -2035,7 +2322,9 @@ def UnlinkWindowsHello(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkWindowsHello", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkWindowsHello", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlinkXboxAccount(request, callback, customData=None, extraHeaders=None):
     """
@@ -2049,7 +2338,9 @@ def UnlinkXboxAccount(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlinkXboxAccount", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlinkXboxAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlockContainerInstance(request, callback, customData=None, extraHeaders=None):
     """
@@ -2065,7 +2356,9 @@ def UnlockContainerInstance(request, callback, customData=None, extraHeaders=Non
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlockContainerInstance", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlockContainerInstance", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UnlockContainerItem(request, callback, customData=None, extraHeaders=None):
     """
@@ -2081,7 +2374,9 @@ def UnlockContainerItem(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UnlockContainerItem", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UnlockContainerItem", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateAvatarUrl(request, callback, customData=None, extraHeaders=None):
     """
@@ -2095,7 +2390,9 @@ def UpdateAvatarUrl(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateAvatarUrl", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateAvatarUrl", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateCharacterData(request, callback, customData=None, extraHeaders=None):
     """
@@ -2109,7 +2406,9 @@ def UpdateCharacterData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateCharacterData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateCharacterData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateCharacterStatistics(request, callback, customData=None, extraHeaders=None):
     """
@@ -2124,7 +2423,9 @@ def UpdateCharacterStatistics(request, callback, customData=None, extraHeaders=N
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateCharacterStatistics", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateCharacterStatistics", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdatePlayerStatistics(request, callback, customData=None, extraHeaders=None):
     """
@@ -2139,7 +2440,9 @@ def UpdatePlayerStatistics(request, callback, customData=None, extraHeaders=None
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdatePlayerStatistics", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdatePlayerStatistics", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateSharedGroupData(request, callback, customData=None, extraHeaders=None):
     """
@@ -2157,7 +2460,9 @@ def UpdateSharedGroupData(request, callback, customData=None, extraHeaders=None)
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateSharedGroupData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateSharedGroupData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateUserData(request, callback, customData=None, extraHeaders=None):
     """
@@ -2171,7 +2476,9 @@ def UpdateUserData(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateUserData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateUserData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateUserPublisherData(request, callback, customData=None, extraHeaders=None):
     """
@@ -2185,7 +2492,9 @@ def UpdateUserPublisherData(request, callback, customData=None, extraHeaders=Non
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateUserPublisherData", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateUserPublisherData", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def UpdateUserTitleDisplayName(request, callback, customData=None, extraHeaders=None):
     """
@@ -2199,7 +2508,9 @@ def UpdateUserTitleDisplayName(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/UpdateUserTitleDisplayName", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/UpdateUserTitleDisplayName", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ValidateAmazonIAPReceipt(request, callback, customData=None, extraHeaders=None):
     """
@@ -2214,7 +2525,9 @@ def ValidateAmazonIAPReceipt(request, callback, customData=None, extraHeaders=No
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ValidateAmazonIAPReceipt", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ValidateAmazonIAPReceipt", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ValidateGooglePlayPurchase(request, callback, customData=None, extraHeaders=None):
     """
@@ -2228,7 +2541,9 @@ def ValidateGooglePlayPurchase(request, callback, customData=None, extraHeaders=
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ValidateGooglePlayPurchase", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ValidateGooglePlayPurchase", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ValidateIOSReceipt(request, callback, customData=None, extraHeaders=None):
     """
@@ -2243,7 +2558,9 @@ def ValidateIOSReceipt(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ValidateIOSReceipt", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ValidateIOSReceipt", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def ValidateWindowsStoreReceipt(request, callback, customData=None, extraHeaders=None):
     """
@@ -2258,7 +2575,9 @@ def ValidateWindowsStoreReceipt(request, callback, customData=None, extraHeaders
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/ValidateWindowsStoreReceipt", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/ValidateWindowsStoreReceipt", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def WriteCharacterEvent(request, callback, customData=None, extraHeaders=None):
     """
@@ -2272,7 +2591,9 @@ def WriteCharacterEvent(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/WriteCharacterEvent", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/WriteCharacterEvent", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def WritePlayerEvent(request, callback, customData=None, extraHeaders=None):
     """
@@ -2286,7 +2607,9 @@ def WritePlayerEvent(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/WritePlayerEvent", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/WritePlayerEvent", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
 
 def WriteTitleEvent(request, callback, customData=None, extraHeaders=None):
     """
@@ -2300,4 +2623,5 @@ def WriteTitleEvent(request, callback, customData=None, extraHeaders=None):
         if callback:
             callback(playFabResult, error)
 
-    PlayFabHTTP.DoPost("/Client/WriteTitleEvent", request, "X-Authorization", PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+    PlayFabHTTP.DoPost("/Client/WriteTitleEvent", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)

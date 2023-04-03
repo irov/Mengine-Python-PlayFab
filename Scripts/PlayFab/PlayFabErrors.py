@@ -1,5 +1,6 @@
 from Enum import Enum
 
+
 class PlayFabErrorCode(Enum):
     """
     Error codes returned by PlayFabAPIs
@@ -440,6 +441,7 @@ class PlayFabErrorCode(Enum):
     MatchmakingStatisticsIdMissing = 2037,
     CannotEnableMultiplayerServersForTitle = 2038
 
+
 class PlayFabError:
     def __init__(self, *args):
         """
@@ -496,6 +498,7 @@ class PlayFabError:
 
     def __str__(self):
         return self.GenerateErrorReport()
+
 
 class PlayFabException(Exception):
     pass

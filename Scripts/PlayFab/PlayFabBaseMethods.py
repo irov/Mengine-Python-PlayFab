@@ -1,6 +1,7 @@
 from Foundation.DefaultManager import DefaultManager
 from PlayFab.PlayFabErrors import PlayFabError
 
+
 class PlayFabBaseMethods(object):
     s_debug_pretty_print = None
 
@@ -152,5 +153,4 @@ class PlayFabBaseMethods(object):
                 modified_response = func(response)
                 cb(modified_response)
             return __wrapper
-
         return __real_decorator
