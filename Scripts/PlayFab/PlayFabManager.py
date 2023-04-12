@@ -745,7 +745,6 @@ class PlayFabManager(Manager):
 
         if current_timestamp - PlayFabManager.timestamps_queue[-1] <= 2:
             Trace.log("Manager", 0, "Warning!!! Less than 2 seconds passed between requests")
-            source.addDelay(2000)
 
         if len(PlayFabManager.timestamps_queue) >= 10:
             old_time_stamp = PlayFabManager.timestamps_queue.pop(0)
