@@ -745,12 +745,12 @@ class PlayFabManager(Manager):
 
         if current_timestamp - PlayFabManager.timestamps_queue[-1] <= 2:
             Trace.log("Manager", 0, "Warning!!! Less than 2 seconds passed between requests")
+            source.addDelay(2000)
 
         if len(PlayFabManager.timestamps_queue) >= 10:
             old_time_stamp = PlayFabManager.timestamps_queue.pop(0)
 
             if current_timestamp - old_time_stamp <= 10:
-                Trace.log("Manager", 0, 'Warning!!! limit"Player data value updates per 15 seconds" has been exceeded')
+                Trace.log("Manager", 0, 'Warning!!! limit "Player data value updates per 15 seconds" has been exceeded')
 
-                source.addDelay(2)
         source.addFunction(PlayFabManager.timestamps_queue.append, current_timestamp)
