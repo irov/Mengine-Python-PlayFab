@@ -40,7 +40,11 @@ def onInitialize():
         if isGlobal is True:
             return
 
-        Mengine.addCurrentAccountSetting("PlayFabId", u"0", None)
+        def _cbPlayFabIdChanged(account_id, value):
+            Mengine.setTextAlias('', '$SettingsPlayerID', 'ID_Setting_PlayerID')
+            Mengine.setTextAliasArguments('', '$SettingsPlayerID', value)
+
+        Mengine.addCurrentAccountSetting("PlayFabId", u"0", _cbPlayFabIdChanged)
         Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)  # is PlayFab user registered
 
         Mengine.addCurrentAccountSetting("DisplayName", u"You", None)
