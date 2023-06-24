@@ -54,7 +54,7 @@ def onInitialize():
             if DefaultManager.hasDefault("DefaultUserDisplayNameTextID"):
                 display_name_text_id = DefaultManager.getDefault("DefaultUserDisplayNameTextID")
                 if Mengine.existText(display_name_text_id):
-                    display_name = Mengine.getTextFromID(display_name_text_id)
+                    display_name = Mengine.getTextFromId(display_name_text_id)
                     Mengine.changeCurrentAccountSetting("DisplayName", u"{}".format(display_name))
 
         Mengine.addCurrentAccountSetting("Password", u"12345678", None)
