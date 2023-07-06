@@ -376,7 +376,7 @@ class GameManager(Manager):
             __success_cb, __fail_cb, **error_handlers)
 
     @staticmethod
-    def scopeVersionCheckAndLoadPlayer(source, isSuccessHolder=None):
+    def scopeVersionCheckAndLoadPlayer(source, isSuccessHolder=None):   # deprecated
         keys = ["Bank", "Quests", "Store"]
 
         def __success_cb(data):
@@ -445,7 +445,9 @@ class GameManager(Manager):
         source.addScope(
             PlayFabManager.scopeExecuteCloudScript,
             "API_OnPlayerLoggedIn",
-            None,
+            {
+                "__api_version__": 1
+            },
             __success_cb, __fail_cb, **error_handlers)
 
     @staticmethod
