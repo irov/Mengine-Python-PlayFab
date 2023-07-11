@@ -728,7 +728,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def scopeExecuteCloudScript(source, function_name, params, success_cb, fail_cb, **error_handlers):
-        source.addScope(PlayFabManager.scopeAddToTimeStampsQueue)
+        source.addScope(PlayFabManager.scopeAddToTimeStampsQueue, function_name)
         source.addScope(
             PlayFabManager.scopePlayFabAPI,
             PlayFabManager.prepareExecuteCloudScript,
@@ -736,7 +736,7 @@ class PlayFabManager(Manager):
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
-    def scopeAddToTimeStampsQueue(source):
+    def scopeAddToTimeStampsQueue(source, function_name=None):
         current_timestamp = Mengine.getTimeMs() / 1000
 
         if len(PlayFabManager.timestamps_queue) == 0:
@@ -744,7 +744,10 @@ class PlayFabManager(Manager):
             return
 
         if current_timestamp - PlayFabManager.timestamps_queue[-1] <= 2:
-            Trace.log("Manager", 0, "Warning!!! Less than 2 seconds passed between requests")
+            if _DEVELOPMENT is True:
+                Trace.log("Manager", 0, "Warning!!! Less than 2 seconds passed between requests (call {})".format(function_name))
+            else:
+                Trace.msg_err("PlayFabManager [W] Less than 2 seconds passed between requests (call {})".format(function_name))
 
         if len(PlayFabManager.timestamps_queue) >= 10:
             old_time_stamp = PlayFabManager.timestamps_queue.pop(0)
