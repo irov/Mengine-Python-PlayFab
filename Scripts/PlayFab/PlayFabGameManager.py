@@ -93,8 +93,7 @@ class GameManager(Manager):
 
         @__error
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
-            print("\nError link: \n{}\n".format(playFabError))
+            Mengine.logError("[PlayFab] LinkAndroidDeviceID fail: {}".format(playFabError))
 
         error_handlers = dict(
             LinkedDeviceAlreadyClaimed=__fail_cb,
@@ -124,8 +123,7 @@ class GameManager(Manager):
 
         @__error
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
-            print("\nError link: \n{}\n".format(playFabError))
+            Mengine.logError("[PlayFab] UnLinkAndroidDeviceID fail: {}".format(playFabError))
 
         error_handlers = dict(
             AccountNotLinked=__fail_cb,
@@ -170,11 +168,10 @@ class GameManager(Manager):
 
         @__error
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
-            print("\nError login: \n{}\n".format(playFabError))
+            Mengine.logError("[PlayFab] LoginWithAndroidDeviceID fail: {}".format(playFabError))
 
         def __account_not_found_cb(playFabError):
-            print('not found account. start create account!')
+            Mengine.logWarning("[PlayFab] LoginWithAndroidDeviceID not found account - start create account! {}".format(playFabError))
 
         error_handlers = dict(
             AccountNotFound=__account_not_found_cb,
@@ -212,11 +209,10 @@ class GameManager(Manager):
 
         @__error
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
-            print("\nError login: \n{}\n".format(playFabError))
+            Mengine.logError("[PlayFab] Authenticate fail: {}".format(playFabError))
 
         def __account_not_found_cb(playFabError):
-            print('not found account!. start create account!')
+            Mengine.logWarning("[PlayFab] LoginWithAndroidDeviceID not found account - start create account! {}".format(playFabError))
             holder_login_success.set(False)
 
         isFirstLogin = Mengine.getCurrentAccountSettingBool("FirstLogin")
@@ -306,7 +302,7 @@ class GameManager(Manager):
 
         @__error
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
+            Mengine.logError("[PlayFab] GetAccountInfo fail: {}".format(playFabError))
 
         error_handlers = dict(
             AccountNotFound=__fail_cb,
@@ -331,7 +327,7 @@ class GameManager(Manager):
             print("updatePlayerStatistics __success_cb", statistics)
 
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
+            Mengine.logError("[PlayFab] UpdatePlayerStatistics fail: {}".format(playFabError))
 
         error_handlers = {
             "AccountNotFound": __fail_cb,
@@ -363,6 +359,7 @@ class GameManager(Manager):
                 isSuccessHolder.setValue(True)
 
         def __fail_cb(playFabError):
+            Mengine.logError("[PlayFab] GetPlayerStatistics fail: {}".format(playFabError))
             if isSuccessHolder is not None:
                 isSuccessHolder.setValue(False)
 
@@ -426,8 +423,7 @@ class GameManager(Manager):
                 isSuccessHolder.set(True)
 
         def __fail_cb(playFabError):
-            Trace.log("Manager", 0, playFabError)
-
+            Mengine.logError("[PlayFab] API_OnPlayerLoggedIn fail: {}".format(playFabError))
             Notification.notify(Notificator.onInternetConnectionLost)
 
             if isSuccessHolder is not None:
@@ -499,7 +495,7 @@ class GameManager(Manager):
                 isSuccessHolder.setValue(True)
 
         def __fail_cb(playFabError):
-            print('Error loading TitleData')
+            Mengine.logError("[PlayFab] GetTitleData fail: {}".format(playFabError))
 
             if isSuccessHolder is not None:
                 isSuccessHolder.setValue(False)
