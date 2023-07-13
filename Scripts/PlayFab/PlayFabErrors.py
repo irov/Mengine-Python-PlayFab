@@ -442,7 +442,7 @@ class PlayFabErrorCode(Enum):
     CannotEnableMultiplayerServersForTitle = 2038
 
 
-class PlayFabError:
+class PlayFabError(object):
     def __init__(self, *args):
         """
         The first args item is expected to be a valid dictionary
