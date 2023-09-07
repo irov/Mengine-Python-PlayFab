@@ -2387,6 +2387,8 @@ def UpdateAvatarUrl(request, callback, customData=None, extraHeaders=None):
         raise PlayFabErrors.PlayFabException("Must be logged in to call this method")
 
     def wrappedCallback(playFabResult, error):
+        if playFabResult is None and error is None:
+            playFabResult = {}  # means it was successful
         if callback:
             callback(playFabResult, error)
 
