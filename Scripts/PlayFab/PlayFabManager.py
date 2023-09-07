@@ -162,7 +162,6 @@ class PlayFabManager(Manager):
         @PlayFabManager.do_before_cb(success_cb)
         def __success_cb(response):
             Mengine.changeCurrentAccountSetting("Name", unicode(user))
-            # Mengine.changeCurrentAccountSetting("DisplayName", unicode(user))
             Mengine.changeCurrentAccountSetting("Password", unicode(password))
             return response
 
@@ -170,7 +169,6 @@ class PlayFabManager(Manager):
             PlayFabClientAPI.RegisterPlayFabUser,
             {
                 "Username": user,
-                # "DisplayName": user,
                 "Password": password,
                 "RequireBothUsernameAndEmail": False
             },
@@ -301,6 +299,19 @@ class PlayFabManager(Manager):
             success_cb, fail_cb, **error_handlers)
 
     # UpdateUserTitleDisplayName
+
+    @staticmethod
+    def setDefaultDisplayName():
+        if DefaultManager.hasDefault("DefaultUserDisplayNameTextID") is False:
+            return
+
+        display_name_text_id = DefaultManager.getDefault("DefaultUserDisplayNameTextID")
+        if Mengine.existText(display_name_text_id) is False:
+            Trace.log("PlayFab", 0, "Not found default display name text id: {}".format(display_name_text_id))
+
+        display_name = Mengine.getTextFromId(display_name_text_id)
+        Mengine.changeCurrentAccountSetting("DisplayName", u"{}".format(display_name))
+
     @staticmethod
     def prepareUpdateUserTitleDisplayName(new_name, success_cb, fail_cb, **error_handlers):
         @PlayFabManager.do_before_cb(success_cb)

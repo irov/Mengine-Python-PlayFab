@@ -48,14 +48,7 @@ def onInitialize():
         Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)  # is PlayFab user registered
 
         Mengine.addCurrentAccountSetting("DisplayName", u"You", None)
-
-        from Foundation.DefaultManager import DefaultManager
-        if DefaultManager.isInitialize():
-            if DefaultManager.hasDefault("DefaultUserDisplayNameTextID"):
-                display_name_text_id = DefaultManager.getDefault("DefaultUserDisplayNameTextID")
-                if Mengine.existText(display_name_text_id):
-                    display_name = Mengine.getTextFromId(display_name_text_id)
-                    Mengine.changeCurrentAccountSetting("DisplayName", u"{}".format(display_name))
+        PlayFabManager.setDefaultDisplayName()
 
         Mengine.addCurrentAccountSetting("Password", u"12345678", None)
 
