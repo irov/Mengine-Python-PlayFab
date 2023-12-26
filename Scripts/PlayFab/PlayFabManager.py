@@ -301,7 +301,7 @@ class PlayFabManager(Manager):
     # UpdateUserTitleDisplayName
 
     @staticmethod
-    def setDefaultDisplayName():
+    def getDefaultDisplayName():
         if DefaultManager.hasDefault("DefaultUserDisplayNameTextID") is False:
             return
 
@@ -310,6 +310,13 @@ class PlayFabManager(Manager):
             Trace.log("PlayFab", 0, "Not found default display name text id: {}".format(display_name_text_id))
 
         display_name = Mengine.getTextFromId(display_name_text_id)
+        return display_name
+
+    @staticmethod
+    def setDefaultDisplayName():
+        display_name = PlayFabManager.getDefaultDisplayName()
+        if display_name is None:
+            return
         Mengine.changeCurrentAccountSetting("DisplayName", u"{}".format(display_name))
 
     @staticmethod
