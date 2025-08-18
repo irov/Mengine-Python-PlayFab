@@ -1,5 +1,4 @@
 import sys
-import traceback
 import PlayFab.PlayFabErrors as PlayFabErrors
 
 
