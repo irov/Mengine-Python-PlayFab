@@ -317,7 +317,7 @@ class PlayFabManager(Manager):
         display_name = PlayFabManager.getDefaultDisplayName()
         if display_name is None:
             return
-        Mengine.changeCurrentAccountSetting("DisplayName", u"{}".format(display_name))
+        Mengine.changeCurrentAccountSetting("DisplayName", unicode(display_name))
 
     @staticmethod
     def prepareUpdateUserTitleDisplayName(new_name, success_cb, fail_cb, **error_handlers):

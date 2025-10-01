@@ -19,9 +19,7 @@ def onInitialize():
     for identity in identities:
         Notificator.addIdentity(identity)
 
-    Types = [
-
-    ]
+    Types = []
 
     if Mengine.getGameParamBool("NotUseDefaultEntitiesList", False) is True:
         Types = []
@@ -47,8 +45,8 @@ def onInitialize():
         Mengine.addCurrentAccountSetting("PlayFabId", u"0", _cbPlayFabIdChanged)
         Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)  # is PlayFab user registered
 
-        Mengine.addCurrentAccountSetting("DisplayName", u"You", None)
-        PlayFabManager.setDefaultDisplayName()
+        DisplayName = PlayFabManager.getDefaultDisplayName()
+        Mengine.addCurrentAccountSetting("DisplayName", unicode(DisplayName), None)
 
         Mengine.addCurrentAccountSetting("Password", u"12345678", None)
 

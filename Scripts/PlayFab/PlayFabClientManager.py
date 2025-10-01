@@ -9,7 +9,6 @@ class PlayFabClientManager(PlayFabBaseMethods):
         @PlayFabClientManager.do_before_cb(success_cb)
         def __success_cb(response):
             Mengine.changeCurrentAccountSetting("Name", unicode(user))
-            # Mengine.changeCurrentAccountSetting("DisplayName", unicode(user))
             Mengine.changeCurrentAccountSetting("Password", unicode(password))
             return response
 

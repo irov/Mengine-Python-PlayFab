@@ -60,7 +60,7 @@ class GameManager(Manager):
 
         @PlayFabManager.do_before_cb(success_cb)
         def __success_cb(response):
-            Mengine.changeCurrentAccountSetting("FirstLogin", u'False')
+            Mengine.changeCurrentAccountSettingBool("FirstLogin", False)
             Mengine.changeCurrentAccountSetting("PlayFabId", response.get("PlayFabId"))
             return response
 
@@ -142,7 +142,7 @@ class GameManager(Manager):
 
         def __success_cb(response):
             print('scopeLoginWithAndroidDeviceID.__success_cb')
-            Mengine.changeCurrentAccountSetting("FirstLogin", u'False')
+            Mengine.changeCurrentAccountSettingBool("FirstLogin", False)
             Mengine.changeCurrentAccountSetting("PlayFabId", response.get("PlayFabId"))
 
             Mengine.saveAccounts()
