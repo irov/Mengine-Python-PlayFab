@@ -1,4 +1,6 @@
 def onInitialize():
+    Trace.msg_dev("PlayFab.onInitialize")
+
     from PlayFab.PlayFabManager import PlayFabManager
     Mengine.addGlobalModule("PlayFabManager", PlayFabManager)
 
@@ -14,13 +16,6 @@ def onInitialize():
 
     for identity in identities:
         Notificator.addIdentity(identity)
-
-    EntityTypes = [
-    ]
-
-    from Foundation.Bootstrapper import Bootstrapper
-    if Bootstrapper.loadEntities("Game", EntityTypes) is False:
-        return False
 
     from Foundation.AccountManager import AccountManager
 
@@ -42,8 +37,16 @@ def onInitialize():
 
     AccountManager.addCreateAccountExtra(accountSetuper)
 
+    EntityTypes = [
+    ]
+
+    from Foundation.Bootstrapper import Bootstrapper
+    if Bootstrapper.loadEntities("PlayFab", EntityTypes) is False:
+        return False
+
     return True
 
 
 def onFinalize():
+    Trace.msg_dev("PlayFab.onFinalize")
     pass
