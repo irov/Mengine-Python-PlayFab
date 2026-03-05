@@ -15,6 +15,9 @@ def onInitialize():
     for identity in identities:
         Notificator.addIdentity(identity)
 
+    EntityTypes = [
+    ]
+
     from Foundation.Bootstrapper import Bootstrapper
     if Bootstrapper.loadEntities("Game", EntityTypes) is False:
         return False
