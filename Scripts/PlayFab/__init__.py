@@ -1,7 +1,4 @@
 def onInitialize():
-    from Foundation.EntityManager import EntityManager
-    from Foundation.ObjectManager import ObjectManager
-
     from PlayFab.PlayFabManager import PlayFabManager
     Mengine.addGlobalModule("PlayFabManager", PlayFabManager)
 
@@ -13,24 +10,14 @@ def onInitialize():
     identities = [
         "onStartMatchSearch",
         "onCancelMatchSearch",
-
     ]
 
     for identity in identities:
         Notificator.addIdentity(identity)
 
-    Types = []
-
-    if Mengine.getGameParamBool("NotUseDefaultEntitiesList", False) is True:
-        Types = []
-        from Foundation.DatabaseManager import DatabaseManager
-        records = DatabaseManager.getDatabaseRecordsFilterBy("Database", "Entities", Module="PlayFabManager")
-
-        for record in records:
-            Types.append(record.get("Type"))
-
-    ObjectManager.importObjects("Game.Objects", Types)
-    EntityManager.importEntities("Game.Entities", Types)
+    from Foundation.Bootstrapper import Bootstrapper
+    if Bootstrapper.loadEntities("Game", EntityTypes) is False:
+        return False
 
     from Foundation.AccountManager import AccountManager
 
