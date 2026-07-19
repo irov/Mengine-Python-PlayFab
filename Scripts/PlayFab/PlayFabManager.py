@@ -14,8 +14,7 @@ class PlayFabManager(Manager):
         DebugPlayFabResponseDataPrint = DefaultManager.getDefaultBool("DebugPlayFabResponseDataPrint", False)
 
         if isinstance(data, PlayFabError) is False and PlayFabManager.s_debug_pretty_print is True:
-            from json import dumps
-            data = dumps(data, indent=2)
+            data = Mengine.encodeJSON(data, indent=2)
 
         LINE_CHAR_COUNT = 79
         Trace.msg("\n" + " {} ".format(msg).center(LINE_CHAR_COUNT, '#'))

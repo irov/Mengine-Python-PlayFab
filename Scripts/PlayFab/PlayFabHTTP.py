@@ -1,4 +1,3 @@
-import json
 import PlayFab.PlayFabErrors as PlayFabErrors
 import PlayFab.PlayFabSettings as PlayFabSettings
 from Foundation.TaskManager import TaskManager
@@ -15,7 +14,7 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraH
     url = PlayFabSettings.GetURL(urlPath, PlayFabSettings._internalSettings.RequestGetParams)
 
     try:
-        j = json.dumps(request)
+        j = Mengine.encodeJSON(request)
     except Exception as e:
         raise PlayFabErrors.PlayFabException("The given request is not json serializable. {}".format(e))
 
@@ -52,7 +51,7 @@ def __httpResponseHandler(httpResponse, callback):
         error.HttpStatus = httpResponse.reason
     else:
         # Contacted playfab
-        responseWrapper = json.loads(httpResponse.content.decode("utf-8"))
+        responseWrapper = Mengine.decodeJSON(httpResponse.content.decode("utf-8"))
         if responseWrapper["code"] != 200:
             # contacted PlayFab, but response indicated failure
             error = responseWrapper
