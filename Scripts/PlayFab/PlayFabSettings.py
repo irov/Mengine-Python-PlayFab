@@ -1,4 +1,3 @@
-import sys
 import PlayFab.PlayFabErrors as PlayFabErrors
 
 
@@ -105,8 +104,7 @@ def GetURL(methodUrl, getParams):
 
 
 def DefaultExceptionLogger(exceptionObj):
-    print("Unexpected error:", sys.exc_info()[0])
-    traceback.print_exc()
+    Trace.log_exception("PlayFab", 0, "Unexpected error: {}".format(exceptionObj))
 
 
 def MengineExceptionLogger(exceptionObj):
