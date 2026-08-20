@@ -123,7 +123,7 @@ class PlayFabManager(Manager):
     @staticmethod
     def __completePlatformIdentityRequest(request_id, status, payload=None, cancel_timeout=True):
         if request_id != PlayFabManager.s_platform_identity_request_id:
-            Trace.log("PlayFab", 0, "Ignored stale platform identity callback")
+            Trace.msg_dev("[PlayFab] Ignored stale platform identity callback")
             return False
 
         success_cb = PlayFabManager.s_platform_identity_success_cb
@@ -162,7 +162,7 @@ class PlayFabManager(Manager):
     @staticmethod
     def __startPlatformIdentityRequest(request_id, provider):
         if request_id != PlayFabManager.s_platform_identity_request_id:
-            Trace.log("PlayFab", 0, "Ignored stale platform identity start")
+            Trace.msg_dev("[PlayFab] Ignored stale platform identity start")
             return False
 
         if provider == "GooglePlayGames":
@@ -546,7 +546,7 @@ class PlayFabManager(Manager):
                 "ForceLink": force_link,
             },
             success_cb, fail_cb, [
-                "AccountAlreadyLinked",
+                "AccountLinkedToABannedPlayer",
                 "LinkedIdentifierAlreadyClaimed",
             ],
             error_handlers)
@@ -585,6 +585,7 @@ class PlayFabManager(Manager):
             },
             success_cb, fail_cb, [
                 "AccountAlreadyLinked",
+                "AccountLinkedToABannedPlayer",
                 "GoogleOAuthError",
                 "GoogleOAuthNotConfiguredForTitle",
                 "InvalidGooglePlayGamesServerAuthCode",
@@ -829,19 +830,33 @@ class PlayFabManager(Manager):
                 credential = identity.get("Credential")
 
                 if provider == "GooglePlayGames":
+                    error_handlers = dict((error, __login_fallback) for error in [
+                        "AccountNotFound",
+                        "GoogleOAuthError",
+                        "GoogleOAuthNotConfiguredForTitle",
+                        "InvalidGooglePlayGamesServerAuthCode",
+                        "InvalidGoogleToken",
+                        "InvalidTitleId",
+                    ])
                     started = PlayFabManager.callLoginWithGooglePlayGamesServices(
                         credential,
                         False,
                         __login_success,
                         __login_fallback,
-                        AccountNotFound=__login_fallback)
+                        **error_handlers)
                 elif provider == "GameCenter":
+                    error_handlers = dict((error, __login_fallback) for error in [
+                        "AccountNotFound",
+                        "GameCenterAuthenticationFailed",
+                        "InvalidGameCenterAuthRequest",
+                        "InvalidTitleId",
+                    ])
                     started = PlayFabManager.callLoginWithGameCenter(
                         credential,
                         False,
                         __login_success,
                         __login_fallback,
-                        AccountNotFound=__login_fallback)
+                        **error_handlers)
                 else:
                     __login_fallback("UnsupportedPlatformIdentity")
                     return
@@ -897,7 +912,7 @@ class PlayFabManager(Manager):
             PlayFabManager.s_custom_id_link_in_progress = False
             PlayFabManager.s_custom_id_link_attempted = True
 
-            Trace.log("PlayFab", 0, "PlayFab CustomID link success")
+            Trace.msg_dev("[PlayFab] CustomID link success")
 
             PlayFabManager.__tryLinkPlatformAccount()
 
@@ -905,7 +920,7 @@ class PlayFabManager(Manager):
             PlayFabManager.s_custom_id_link_in_progress = False
             PlayFabManager.s_custom_id_link_attempted = True
 
-            Trace.log("PlayFab", 0, "PlayFab CustomID link skipped: {}".format(error.Error))
+            Trace.msg_warn("[PlayFab] CustomID link skipped: {}".format(error.Error))
 
             PlayFabManager.__tryLinkPlatformAccount()
 
@@ -913,11 +928,18 @@ class PlayFabManager(Manager):
             custom_id,
             False,
             __success_cb,
-            __fail_cb)
+            __fail_cb,
+            AccountLinkedToABannedPlayer=__fail_cb,
+            LinkedIdentifierAlreadyClaimed=__fail_cb)
 
     @staticmethod
     def __tryLinkPlatformAccount():
         if PlayFabManager.s_platform_link_in_progress is True or PlayFabManager.s_platform_link_attempted is True:
+            return False
+
+        if PlayFabManager.isPlatformIdentitySupported() is False:
+            PlayFabManager.s_platform_link_attempted = True
+            Trace.msg_dev("[PlayFab] Platform identity link is not supported on this build")
             return False
 
         PlayFabManager.s_platform_link_in_progress = True
@@ -929,7 +951,7 @@ class PlayFabManager(Manager):
             PlayFabManager.s_platform_link_in_progress = False
             PlayFabManager.s_platform_link_attempted = True
 
-            Trace.log("PlayFab", 0, "Platform identity link skipped: {}".format(reason))
+            Trace.msg_warn("[PlayFab] Platform identity link skipped: {}".format(reason))
 
         return PlayFabManager.__requestPlatformIdentity(
             __identity_success,
@@ -945,32 +967,50 @@ class PlayFabManager(Manager):
             PlayFabManager.s_platform_link_in_progress = False
             PlayFabManager.s_platform_link_attempted = True
 
-            Trace.log("PlayFab", 0, "PlayFab {} link success".format(provider))
+            Trace.msg_dev("[PlayFab] {} link success".format(provider))
+
+        def __already_linked_cb(error):
+            PlayFabManager.s_platform_link_in_progress = False
+            PlayFabManager.s_platform_link_attempted = True
+
+            Trace.msg_dev("[PlayFab] {} account is already linked".format(provider))
 
         def __fail_cb(error):
             PlayFabManager.s_platform_link_in_progress = False
             PlayFabManager.s_platform_link_attempted = True
 
-            Trace.log("PlayFab", 0, "PlayFab {} link failed: {}".format(provider, error.Error))
+            Trace.msg_warn("[PlayFab] {} link failed: {}".format(provider, error.Error))
 
         if provider == "GooglePlayGames":
             return PlayFabManager.callLinkGooglePlayGamesServicesAccount(
                 credential,
                 False,
                 __success_cb,
-                __fail_cb)
+                __fail_cb,
+                AccountAlreadyLinked=__already_linked_cb,
+                AccountLinkedToABannedPlayer=__fail_cb,
+                GoogleOAuthError=__fail_cb,
+                GoogleOAuthNotConfiguredForTitle=__fail_cb,
+                InvalidGooglePlayGamesServerAuthCode=__fail_cb,
+                InvalidGoogleToken=__fail_cb,
+                LinkedAccountAlreadyClaimed=__fail_cb)
 
         if provider == "GameCenter":
             return PlayFabManager.callLinkGameCenterAccount(
                 credential,
                 False,
                 __success_cb,
-                __fail_cb)
+                __fail_cb,
+                AccountAlreadyLinked=__already_linked_cb,
+                AccountLinkedToABannedPlayer=__fail_cb,
+                GameCenterAuthenticationFailed=__fail_cb,
+                InvalidGameCenterAuthRequest=__fail_cb,
+                LinkedAccountAlreadyClaimed=__fail_cb)
 
         PlayFabManager.s_platform_link_in_progress = False
         PlayFabManager.s_platform_link_attempted = True
 
-        Trace.log("PlayFab", 0, "Unsupported platform identity provider")
+        Trace.msg_warn("[PlayFab] Unsupported platform identity provider")
 
         return False
 
