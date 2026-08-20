@@ -4,6 +4,8 @@ def onInitialize():
     from PlayFab.PlayFabManager import PlayFabManager
     Mengine.addGlobalModule("PlayFabManager", PlayFabManager)
 
+    PlayFabManager.initializeIdentityLinking()
+
     from TraceManager import TraceManager
     TraceManager.addTrace("PlayFab")
 
@@ -34,6 +36,7 @@ def onInitialize():
         Mengine.addCurrentAccountSetting("DisplayName", unicode(DisplayName), None)
 
         Mengine.addCurrentAccountSetting("Password", u"12345678", None)
+        Mengine.addCurrentAccountSetting("PlayFabCustomId", unicode(Mengine.generateUniqueIdentity(64)), None)
 
     AccountManager.addCreateAccountExtra(accountSetuper)
 
@@ -49,4 +52,6 @@ def onInitialize():
 
 def onFinalize():
     Trace.msg_dev("PlayFab.onFinalize")
-    pass
+
+    from PlayFab.PlayFabManager import PlayFabManager
+    PlayFabManager.finalizeIdentityLinking()

@@ -469,69 +469,6 @@ class PlayFabClientManager(PlayFabBaseMethods):
             image_url,
             success_cb, fail_cb, **error_handlers)
 
-    # LinkFacebookAccount
-    @staticmethod
-    def prepareLinkFacebookAccount(access_token, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabClientManager.preparePlayFabAPI(
-            PlayFabClientAPI.LinkFacebookAccount,
-            {
-                "AccessToken": access_token,  # facebook access token
-                "ForceLink": force_link  # boolean
-            },
-            success_cb, fail_cb,
-            [
-                "AccountAlreadyLinked",
-                "FacebookAPIError",
-                "InvalidFacebookToken",
-                "LinkedAccountAlreadyClaimed",
-            ],
-            error_handlers)
-
-    # LoginFacebookAccount
-    @staticmethod
-    def prepareLoginFacebookAccount(access_token, create_account, success_cb, fail_cb, **error_handlers):
-        return PlayFabClientManager.preparePlayFabAPI(
-            PlayFabClientAPI.LoginWithFacebook,
-            {
-                "AccessToken": access_token,  # facebook access token
-                "CreateAccount": create_account,
-                # Automatically create a PlayFab account if one is not currently linked to this ID.
-            },
-            success_cb, fail_cb,
-            [
-                "EncryptionKeyMissing",
-                "EvaluationModePlayerCountExceeded",
-                "FacebookAPIError",
-                "InvalidFacebookToken",
-                "PlayerSecretAlreadyConfigured",
-                "PlayerSecretNotConfigured",
-                "RequestViewConstraintParamsNotAllowed",
-            ],
-            error_handlers)
-
-    @staticmethod
-    def callLinkFacebookAccount(access_token, force_link, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
-            PlayFabClientManager.prepareLinkFacebookAccount,
-            access_token, force_link,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeLinkFacebookAccount(source, access_token, force_link, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabClientManager.scopePlayFabAPI,
-            PlayFabClientManager.prepareLinkFacebookAccount,
-            access_token, force_link,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeLoginFacebookAccount(source, access_token, create_account, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabClientManager.scopePlayFabAPI,
-            PlayFabClientManager.prepareLoginFacebookAccount,
-            access_token, create_account,
-            success_cb, fail_cb, **error_handlers)
-
     # ExecuteCloudScript
     @staticmethod
     def prepareExecuteCloudScript(function_name, params, success_cb, fail_cb, **error_handlers):

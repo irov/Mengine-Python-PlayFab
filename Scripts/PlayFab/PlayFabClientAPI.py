@@ -1254,6 +1254,22 @@ def LinkGoogleAccount(request, callback, customData=None, extraHeaders=None):
                        PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
 
 
+def LinkGooglePlayGamesServicesAccount(request, callback, customData=None, extraHeaders=None):
+    """
+    Links the currently signed-in PlayFab user to Google Play Games Services using a server auth code.
+    https://learn.microsoft.com/rest/api/playfab/client/account-management/link-google-play-games-services-account
+    """
+    if not PlayFabSettings._internalSettings.ClientSessionTicket:
+        raise PlayFabErrors.PlayFabException("Must be logged in to call this method")
+
+    def wrappedCallback(playFabResult, error):
+        if callback:
+            callback(playFabResult, error)
+
+    PlayFabHTTP.DoPost("/Client/LinkGooglePlayGamesServicesAccount", request, "X-Authorization",
+                       PlayFabSettings._internalSettings.ClientSessionTicket, wrappedCallback, customData, extraHeaders)
+
+
 def LinkIOSDeviceID(request, callback, customData=None, extraHeaders=None):
     """
     Links the vendor-specific iOS device identifier to the user's PlayFab account
@@ -1389,7 +1405,7 @@ def LoginWithAndroidDeviceID(request, callback, customData=None, extraHeaders=No
     API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithAndroidDeviceID
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1412,7 +1428,7 @@ def LoginWithCustomID(request, callback, customData=None, extraHeaders=None):
     subsequently be used for API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithCustomID
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1437,7 +1453,7 @@ def LoginWithEmailAddress(request, callback, customData=None, extraHeaders=None)
     RegisterPlayFabUser.
     https://api.playfab.com/documentation/client/method/LoginWithEmailAddress
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1460,7 +1476,7 @@ def LoginWithFacebook(request, callback, customData=None, extraHeaders=None):
     calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithFacebook
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1483,7 +1499,7 @@ def LoginWithFacebookInstantGamesId(request, callback, customData=None, extraHea
     API calls which require an authenticated user. Requires Facebook Instant Games to be configured.
     https://api.playfab.com/documentation/client/method/LoginWithFacebookInstantGamesId
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1506,7 +1522,7 @@ def LoginWithGameCenter(request, callback, customData=None, extraHeaders=None):
     used for API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithGameCenter
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1528,7 +1544,7 @@ def LoginWithGoogleAccount(request, callback, customData=None, extraHeaders=None
     Signs the user in using their Google account credentials
     https://api.playfab.com/documentation/client/method/LoginWithGoogleAccount
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1545,13 +1561,35 @@ def LoginWithGoogleAccount(request, callback, customData=None, extraHeaders=None
     PlayFabHTTP.DoPost("/Client/LoginWithGoogleAccount", request, None, None, wrappedCallback, customData, extraHeaders)
 
 
+def LoginWithGooglePlayGamesServices(request, callback, customData=None, extraHeaders=None):
+    """
+    Signs the user in with Google Play Games Services using a server auth code.
+    https://learn.microsoft.com/rest/api/playfab/client/authentication/login-with-google-play-games-services
+    """
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
+    if not request["TitleId"]:
+        raise PlayFabErrors.PlayFabException("Must have TitleId set to call this method")
+
+    def wrappedCallback(playFabResult, error):
+        if playFabResult:
+            if "SessionTicket" in playFabResult:
+                PlayFabSettings._internalSettings.ClientSessionTicket = playFabResult["SessionTicket"]
+            if "EntityToken" in playFabResult:
+                PlayFabSettings._internalSettings.EntityToken = playFabResult["EntityToken"]["EntityToken"]
+            MultiStepClientLogin(playFabResult.get("SettingsForUser"))
+        if callback:
+            callback(playFabResult, error)
+
+    PlayFabHTTP.DoPost("/Client/LoginWithGooglePlayGamesServices", request, None, None, wrappedCallback, customData, extraHeaders)
+
+
 def LoginWithIOSDeviceID(request, callback, customData=None, extraHeaders=None):
     """
     Signs the user in using the vendor-specific iOS device identifier, returning a session identifier that can subsequently
     be used for API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithIOSDeviceID
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1573,7 +1611,7 @@ def LoginWithKongregate(request, callback, customData=None, extraHeaders=None):
     Signs the user in using a Kongregate player account.
     https://api.playfab.com/documentation/client/method/LoginWithKongregate
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1596,7 +1634,7 @@ def LoginWithNintendoSwitchDeviceId(request, callback, customData=None, extraHea
     API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithNintendoSwitchDeviceId
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1620,7 +1658,7 @@ def LoginWithOpenIdConnect(request, callback, customData=None, extraHeaders=None
     provider.
     https://api.playfab.com/documentation/client/method/LoginWithOpenIdConnect
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1645,7 +1683,7 @@ def LoginWithPlayFab(request, callback, customData=None, extraHeaders=None):
     RegisterPlayFabUser, or added to existing accounts using AddUsernamePassword.
     https://api.playfab.com/documentation/client/method/LoginWithPlayFab
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1668,7 +1706,7 @@ def LoginWithSteam(request, callback, customData=None, extraHeaders=None):
     API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithSteam
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1690,7 +1728,7 @@ def LoginWithTwitch(request, callback, customData=None, extraHeaders=None):
     Signs the user in using a Twitch access token.
     https://api.playfab.com/documentation/client/method/LoginWithTwitch
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1715,7 +1753,7 @@ def LoginWithWindowsHello(request, callback, customData=None, extraHeaders=None)
     server.
     https://api.playfab.com/documentation/client/method/LoginWithWindowsHello
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1738,7 +1776,7 @@ def LoginWithXbox(request, callback, customData=None, extraHeaders=None):
     which require an authenticated user
     https://api.playfab.com/documentation/client/method/LoginWithXbox
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1864,7 +1902,7 @@ def RegisterPlayFabUser(request, callback, customData=None, extraHeaders=None):
     require an authenticated user. You must supply either a username or an email address.
     https://api.playfab.com/documentation/client/method/RegisterPlayFabUser
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
@@ -1885,7 +1923,7 @@ def RegisterWithWindowsHello(request, callback, customData=None, extraHeaders=No
     subsequently be used for API calls which require an authenticated user
     https://api.playfab.com/documentation/client/method/RegisterWithWindowsHello
     """
-    request["TitleId"] = PlayFabSettings.TitleId or request.TitleId
+    request["TitleId"] = PlayFabSettings.TitleId or request.get("TitleId")
     if not request["TitleId"]:
         raise PlayFabErrors.PlayFabException("Must be have TitleId set to call this method")
 
