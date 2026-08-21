@@ -5,10 +5,8 @@ from Foundation.TaskManager import TaskManager
 
 def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraHeaders=None):
     """
-    Note this is a blocking call and will always run synchronously
-    the return type is a dictionary that should contain a valid dictionary that
-    should reflect the expected JSON response
-    if the call fails, there will be a returned PlayFabError
+    Schedule an asynchronous PlayFab HTTP request.
+    The callback receives either response data or a PlayFab error envelope.
     """
 
     url = PlayFabSettings.GetURL(urlPath, PlayFabSettings._internalSettings.RequestGetParams)
@@ -36,8 +34,21 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraH
         list_header = "{}: {}".format(key, value)
         headers.append(list_header)
 
+    request_completed = [False]
+
+    def __request_cb(_status, error, response, code, successful):
+        request_completed[0] = True
+        __httpResponseHandler(error, response, code, successful, callback)
+
+    def __request_finished():
+        if request_completed[0] is True:
+            return
+
+        __request_cb(None, "Request Not Started", "", 408, False)
+
     with TaskManager.createTaskChain() as source:
-        source.addTask("TaskHeaderData", Url=url, Headers=headers, Data=j, Cb=__onHeaderData, Args=(callback,))
+        source.addTask("TaskHeaderData", Url=url, Headers=headers, Data=j, Cb=__request_cb)
+        source.addFunction(__request_finished)
 
 
 def __makeError(http_code, http_status, error, error_code, error_message, error_details=None):
@@ -51,18 +62,33 @@ def __makeError(http_code, http_status, error, error_code, error_message, error_
     }
 
 
-def __decodeResponse(httpResponse):
-    response_text = httpResponse.content.decode("utf-8")
+def __makeTransportError(http_code, http_status):
+    if http_code is None or http_code <= 0:
+        http_code = 408
 
-    if httpResponse.status_code != 200:
+    return __makeError(
+        http_code,
+        http_status,
+        "ServiceUnavailable",
+        1123,
+        "Unable to contact PlayFab server")
+
+
+def __decodeResponse(reason, response, code, successful):
+    if successful is False:
+        return None, __makeTransportError(code, reason or "Transport Error")
+
+    response_text = response or ""
+
+    if code != 200:
         if response_text:
             try:
                 response_wrapper = Mengine.decodeJSON(response_text)
 
                 if isinstance(response_wrapper, dict) and response_wrapper.get("error") is not None:
                     error = __makeError(
-                        response_wrapper.get("code", httpResponse.status_code),
-                        response_wrapper.get("status", httpResponse.reason or "PlayFab Error"),
+                        response_wrapper.get("code", code),
+                        response_wrapper.get("status", reason or "PlayFab Error"),
                         response_wrapper.get("error", "UnknownError"),
                         response_wrapper.get("errorCode", 1),
                         response_wrapper.get("errorMessage", "PlayFab request failed"),
@@ -72,12 +98,9 @@ def __decodeResponse(httpResponse):
             except Exception:
                 pass
 
-        error = __makeError(
-            httpResponse.status_code,
-            httpResponse.reason or "Transport Error",
-            "ServiceUnavailable",
-            1123,
-            "Unable to contact PlayFab server")
+        error = __makeTransportError(
+            code,
+            reason or "Transport Error")
 
         return None, error
 
@@ -88,8 +111,8 @@ def __decodeResponse(httpResponse):
         response_wrapper = Mengine.decodeJSON(response_text)
     except Exception:
         error = __makeError(
-            httpResponse.status_code,
-            httpResponse.reason or "Invalid Response",
+            code,
+            reason or "Invalid Response",
             "JsonParseError",
             3,
             "PlayFab returned invalid JSON")
@@ -98,8 +121,8 @@ def __decodeResponse(httpResponse):
 
     if isinstance(response_wrapper, dict) is False:
         error = __makeError(
-            httpResponse.status_code,
-            httpResponse.reason or "Invalid Response",
+            code,
+            reason or "Invalid Response",
             "JsonParseError",
             3,
             "PlayFab returned an invalid response envelope")
@@ -108,8 +131,8 @@ def __decodeResponse(httpResponse):
 
     if response_wrapper.get("code") != 200 or response_wrapper.get("error") is not None:
         error = __makeError(
-            response_wrapper.get("code", httpResponse.status_code),
-            response_wrapper.get("status", httpResponse.reason or "PlayFab Error"),
+            response_wrapper.get("code", code),
+            response_wrapper.get("status", reason or "PlayFab Error"),
             response_wrapper.get("error", "UnknownError"),
             response_wrapper.get("errorCode", 1),
             response_wrapper.get("errorMessage", "PlayFab request failed"),
@@ -139,8 +162,8 @@ def __decodeResponse(httpResponse):
             error_details["Logs"] = logs
 
         error = __makeError(
-            httpResponse.status_code,
-            httpResponse.reason or "CloudScript Error",
+            code,
+            reason or "CloudScript Error",
             error_desc.get("Error", "CloudScriptAPIRequestError"),
             1210,
             error_desc.get("Message", "CloudScript execution failed"),
@@ -151,39 +174,34 @@ def __decodeResponse(httpResponse):
     return response_data, None
 
 
-def __httpResponseHandler(httpResponse, callback):
-    response, error = __decodeResponse(httpResponse)
+def __httpResponseHandler(reason, response, code, successful, callback):
+    try:
+        response, error = __decodeResponse(reason, response, code, successful)
+    except Exception as e:
+        PlayFabSettings.GlobalExceptionLogger(e)
 
+        response = None
+        error = __makeError(
+            500,
+            "Invalid Response",
+            "JsonParseError",
+            3,
+            "PlayFab returned an invalid response")
+
+    __dispatchResponse(response, error, callback)
+
+
+def __dispatchResponse(response, error, callback):
     if error is not None:
         callGlobalErrorHandler(error)
 
-        if callback:
-            callback(None, error)
-
+    if callback is None:
         return
 
-    if callback:
-        callback(response, None)
-
-
-class HttpResponseAdapter(object):
-    class Content(object):
-        def __init__(self, response):
-            self.response = response
-
-        def decode(self, encoding):
-            return self.response
-
-    def __init__(self, error, response, code):
-        self.status_code = code
-        self.reason = error
-        self.content = HttpResponseAdapter.Content(response)
-
-
-def __onHeaderData(status, error, response, code, successful, callback):
-    httpResponse = HttpResponseAdapter(error, response, code)
-
-    __httpResponseHandler(httpResponse, callback)
+    try:
+        callback(response, error)
+    except Exception as e:
+        PlayFabSettings.GlobalExceptionLogger(e)
 
 
 def callGlobalErrorHandler(error):

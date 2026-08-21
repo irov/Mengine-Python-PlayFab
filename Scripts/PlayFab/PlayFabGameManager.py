@@ -27,7 +27,7 @@ class GameManager(Manager):
 
     @staticmethod
     def clearLoadDataCache():
-        GameManager.s_player_data_caTaskTransitionche = {}
+        GameManager.s_player_data_cache = {}
 
     @staticmethod
     def getDefaultPlayerName():
@@ -141,7 +141,6 @@ class GameManager(Manager):
             return
 
         def __success_cb(response):
-            print('scopeLoginWithAndroidDeviceID.__success_cb')
             Mengine.changeCurrentAccountSettingBool("FirstLogin", False)
             Mengine.changeCurrentAccountSetting("PlayFabId", response.get("PlayFabId"))
 
@@ -156,8 +155,6 @@ class GameManager(Manager):
             return response
 
         def __error(func):
-            print('scopeLoginWithAndroidDeviceID.__error')
-
             def __wrapper(*args, **kwargs):
                 func(*args, **kwargs)
 
@@ -324,7 +321,7 @@ class GameManager(Manager):
         ]
 
         def __success_cb(response):
-            print("updatePlayerStatistics __success_cb", statistics)
+            pass
 
         def __fail_cb(playFabError):
             Mengine.logError("[PlayFab] UpdatePlayerStatistics fail: {}".format(playFabError))
@@ -402,7 +399,6 @@ class GameManager(Manager):
             #     return
 
             if GameManager.checkProjectVersion(data) is False:
-                print("VVVVVVVVVVVVVVVVVVVVVV PROJECT VERSION IS NOT VALID VVVVVVVVVVVVVVVVVVVVVVV")
                 from Game.PopUp import PopUp
                 source.addScope(PopUp.scope_Check_Version)
                 # Notification.notify(Notificator.onMessageOkPopUp, "AppUpdate")
@@ -451,42 +447,39 @@ class GameManager(Manager):
         server_project_version_string = data.get("ProjectVersion")
 
         if server_project_version_string is None:
-            print("NO PROJECT VERSION IN ON LOGGED IN RESPONSE")
+            Trace.msg_warn("[PlayFab] ProjectVersion is missing in the server response")
             return False
 
         client_project_version = Mengine.getConfigInt("Playfab", "ProjectVersion", 0)
 
-        # dirty hack
-        server_project_version_parts = server_project_version_string.split(".")
-        if not server_project_version_parts:
-            print("PROJECT VERSION FAIL TO CONVERT")
+        try:
+            server_project_version = int(str(server_project_version_string).split(".", 1)[0])
+        except (TypeError, ValueError):
+            Trace.msg_warn(
+                "[PlayFab] Invalid server ProjectVersion: '{}'".format(server_project_version_string))
             return False
-
-        server_project_version = int(server_project_version_parts[0])
-
-        print()
-        print(" ___PROJECT_VERSION___ SERVER='{}' / CLIENT='{}'".format(server_project_version, client_project_version))
 
         is_valid_versions = server_project_version <= client_project_version
 
-        print(" __CHECK__ {}".format(is_valid_versions))
+        Trace.msg_dev(
+            "[PlayFab] ProjectVersion server='{}' client='{}' valid={}".format(
+                server_project_version,
+                client_project_version,
+                is_valid_versions))
 
         return is_valid_versions
 
     @staticmethod
     def scopeLoadTitleDataFromServer(source, isSuccessHolder=None, PrintTitleData=False, PrintRevision=True):
-        PrintRevision = True
-
         title_data_keys = ["ProjectVersion"]
 
         def __success_cb(data):
             if len(data) == 0:  # try again
-                print(" DATA IS EMPTY - TRY AGAIN ".center(100, "A"))
+                Trace.msg_warn("[PlayFab] Title data response is empty")
                 if isSuccessHolder is not None:
                     isSuccessHolder.setValue(False)
                 return
             if GameManager.checkProjectVersion(data) is False:
-                print(" checkProjectVersion is False ".center(100, "A"))
                 if isSuccessHolder is not None:
                     isSuccessHolder.setValue(False)
                 return

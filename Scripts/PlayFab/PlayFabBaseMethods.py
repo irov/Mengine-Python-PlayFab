@@ -1,49 +1,42 @@
 from Foundation.DefaultManager import DefaultManager
 from PlayFab.PlayFabErrors import PlayFabError
+import PlayFab.PlayFabSettings as PlayFabSettings
 
 
 class PlayFabBaseMethods(object):
-    s_debug_pretty_print = None
-
     # = DEBUG ==========================================================================================================
     @staticmethod
     def print_data(msg, data):
         DebugPlayFabResponseDataPrint = DefaultManager.getDefaultBool("DebugPlayFabResponseDataPrint", False)
 
-        if isinstance(data, PlayFabError) is False and PlayFabBaseMethods.s_debug_pretty_print is True:
+        if (isinstance(data, PlayFabError) is False and
+                DefaultManager.getDefaultBool("DebugDataPrettyPrint", False) is True):
             data = Mengine.encodeJSON(data, indent=2)
 
         LINE_CHAR_COUNT = 79
-        print()
-        print(" {} ".format(msg).center(LINE_CHAR_COUNT, '#'))
+        Trace.msg("\n" + " {} ".format(msg).center(LINE_CHAR_COUNT, '#'))
 
         if DebugPlayFabResponseDataPrint is True:
-            print(data)
+            Trace.msg(data)
         else:
-            print("! PlayFab response data print is disabled.")
-            print("! For enable change default param 'DebugPlayFabResponseDataPrint' to True")
+            Trace.msg("! PlayFab response data print is disabled.")
+            Trace.msg("! For enable change default param 'DebugPlayFabResponseDataPrint' to True")
 
-        print("#" * LINE_CHAR_COUNT)
-        print()
+        Trace.msg("#" * LINE_CHAR_COUNT + "\n")
 
     # = SERVICE ========================================================================================================
     @staticmethod
     def checkErrorHandler(error, handlers, log=False):
         if error not in handlers:
             if log:
-                Trace.log("Manager", 0, "[PlayFabBaseMethods|checkErrorHandler] no error handler for error '{}'".format(error))
+                Trace.msg_dev(
+                    "[PlayFab] No dedicated error handler for '{}'; using default fail callback".format(error))
             return False
-        elif handlers[error] is None:
-            if log:
-                Trace.log("Manager", 0, "[PlayFabBaseMethods|checkErrorHandler] invalid error handler '{}' for error '{}'".format(handlers[error], error))
-            return False
-        return True
 
-    @staticmethod
-    def checkErrorHandlers(errors, handlers, log=False):
-        for error in errors:
-            if PlayFabBaseMethods.checkErrorHandler(error, handlers, log) is False:
-                return False
+        if handlers[error] is None:
+            if log:
+                Trace.msg_warn("[PlayFab] Invalid None handler for error '{}'".format(error))
+            return False
 
         return True
 
@@ -56,48 +49,51 @@ class PlayFabBaseMethods(object):
         def __cb(response, error):
             if error is not None:
                 if DebugPlayFabLogOnFail:
-                    PlayFabBaseMethods.print_data("[PlayFabBaseMethods] '{}' call - ERROR".format(api_method.__name__), error)
+                    PlayFabBaseMethods.print_data("[PlayFab] '{}' call - ERROR".format(api_method.__name__), error)
                 if isinstance(error, PlayFabError) is False:
                     playFabError = PlayFabError(error)
                 else:
                     playFabError = error
-                error_handler = error_handlers.get(playFabError.Error, fail_cb)
+                error_handler = error_handlers.get(playFabError.Error) or fail_cb
 
                 error_handler(playFabError)
 
+                return
+
             if response is not None:
                 if DebugPlayFabLogOnSuccess:
-                    PlayFabBaseMethods.print_data("[PlayFabBaseMethods] '{}' call - RESPONSE".format(api_method.__name__), response)
+                    PlayFabBaseMethods.print_data("[PlayFab] '{}' call - RESPONSE".format(api_method.__name__), response)
                 success_cb(response)
 
-            if error is None and response is None:
-                response = {}
-                if DebugPlayFabLogOnSuccess:
-                    PlayFabBaseMethods.print_data("[PlayFabBaseMethods] '{}' call - RESPONSE".format(api_method.__name__), response)
-                success_cb(response)
+                return
+
+            if DebugPlayFabLogOnSuccess:
+                PlayFabBaseMethods.print_data("[PlayFab] '{}' call - EMPTY RESPONSE".format(api_method.__name__), {})
+
+            success_cb({})
 
         return __cb
 
     @staticmethod
     def checkPlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers):
         if api_method is None:
-            Trace.log("Manager", 0, "[PlayFabBaseMethods|callPlayFabAPI] api_method is None")
+            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] api_method is None")
             return False
 
         if request is None:
-            Trace.log("Manager", 0, "[PlayFabBaseMethods|callPlayFabAPI] request is None")
+            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] request is None")
             return False
 
         if success_cb is None:
-            Trace.log("Manager", 0, "[PlayFabBaseMethods|callPlayFabAPI] success_cb is None")
+            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] success_cb is None")
             return False
 
         if fail_cb is None:
-            Trace.log("Manager", 0, "[PlayFabBaseMethods|callPlayFabAPI] fail_cb is None")
+            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] fail_cb is None")
             return False
 
         if possible_errors is None:
-            Trace.log("Manager", 0, "[PlayFabBaseMethods|callPlayFabAPI] possible_errors is None")
+            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] possible_errors is None")
             return False
 
         DebugPlayFabLogErrorHandlerCheck = DefaultManager.getDefault("DebugPlayFabLogErrorHandlerCheck", False)
@@ -118,20 +114,84 @@ class PlayFabBaseMethods(object):
 
     @staticmethod
     def callPlayFabAPI(api_prepare_method, *args, **kwargs):
-        api_method, request, __api_cb = api_prepare_method(*args, **kwargs)
+        try:
+            prepared_api = api_prepare_method(*args, **kwargs)
+        except Exception as e:
+            PlayFabSettings.GlobalExceptionLogger(e)
 
-        api_method(request, __api_cb)
+            return False
+
+        if prepared_api is None:
+            return False
+
+        api_method, request, __api_cb = prepared_api
+        callback_called = [False]
+
+        def __callback(response, error):
+            if callback_called[0] is True:
+                return
+
+            callback_called[0] = True
+
+            try:
+                __api_cb(response, error)
+            except Exception as e:
+                PlayFabSettings.GlobalExceptionLogger(e)
+
+        try:
+            api_method(request, __callback)
+        except Exception as e:
+            PlayFabSettings.GlobalExceptionLogger(e)
+
+            if callback_called[0] is False:
+                __callback(None, PlayFabError())
+
+            return False
+
+        return True
 
     @staticmethod
     def scopePlayFabAPI(source, api_prepare_method, *args, **kwargs):
-        api_method, request, __api_cb = api_prepare_method(*args, **kwargs)
+        try:
+            prepared_api = api_prepare_method(*args, **kwargs)
+        except Exception as e:
+            PlayFabSettings.GlobalExceptionLogger(e)
+
+            return
+
+        if prepared_api is None:
+            Trace.log("Manager", 0, "[PlayFab|scopePlayFabAPI] invalid prepared API")
+
+            return
+
+        api_method, request, __api_cb = prepared_api
 
         def __task_cb(isSkip, __complete_cb):
-            def __scope_api_cb(response, error):
-                __api_cb(response, error)
+            if isSkip is True:
                 __complete_cb(isSkip)
+                return
 
-            api_method(request, __scope_api_cb)
+            completed = [False]
+
+            def __callback(response, error):
+                if completed[0] is True:
+                    return
+
+                completed[0] = True
+                try:
+                    __api_cb(response, error)
+                except Exception as e:
+                    PlayFabSettings.GlobalExceptionLogger(e)
+                finally:
+                    __complete_cb(isSkip)
+
+            try:
+                api_method(request, __callback)
+            except Exception as e:
+                PlayFabSettings.GlobalExceptionLogger(e)
+
+                if completed[0] is False:
+                    __callback(None, PlayFabError())
 
         source.addCallback(__task_cb)
 
@@ -144,12 +204,11 @@ class PlayFabBaseMethods(object):
         :return:
         """
         if cb is None:
-            Trace.log("Manager", 0, "[PlayFabBaseMethods|cb_wrap_with_check] cb is None")
+            Trace.log("Manager", 0, "[PlayFab|cb_wrap_with_check] cb is None")
             return None
 
         def __real_decorator(func):
             def __wrapper(response):
-                modified_response = func(response)
-                cb(modified_response)
+                cb(func(response))
             return __wrapper
         return __real_decorator

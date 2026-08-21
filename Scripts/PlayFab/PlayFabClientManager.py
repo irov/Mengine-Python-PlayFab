@@ -1,6 +1,6 @@
 import PlayFab.PlayFabClientAPI as PlayFabClientAPI
 
-from PlayFabBaseMethods import PlayFabBaseMethods
+from PlayFab.PlayFabBaseMethods import PlayFabBaseMethods
 
 
 class PlayFabClientManager(PlayFabBaseMethods):
@@ -31,7 +31,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callRegisterPlayFabUser(user, password, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareRegisterPlayFabUser,
             user, password,
             success_cb, fail_cb, **error_handlers)
@@ -52,7 +52,6 @@ class PlayFabClientManager(PlayFabBaseMethods):
             {
                 "Username": user,
                 "Password": password,
-                "TitleId": "1"
             },
             success_cb, fail_cb, [
                 "AccountNotFound",
@@ -109,7 +108,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callLoginWithPlayFab(user, password, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareLoginWithPlayFab,
             user, password,
             success_cb, fail_cb, **error_handlers)
@@ -169,7 +168,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callUpdateUserTitleDisplayName(new_name, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareUpdateUserTitleDisplayName,
             new_name,
             success_cb, fail_cb, **error_handlers)
@@ -203,7 +202,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetUserReadOnlyData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetUserReadOnlyData,
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
@@ -236,7 +235,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetTitleData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetTitleData,
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
@@ -278,7 +277,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
     @staticmethod
     def callGetLeaderboard(statistic_name, max_result_count, profile_constraints,
                            success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetLeaderboard,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
@@ -321,7 +320,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
     @staticmethod
     def callGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
                                        success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetLeaderboardAroundPlayer,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
@@ -358,7 +357,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetAccountInfo(success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetAccountInfo,
             success_cb, fail_cb, **error_handlers)
 
@@ -390,7 +389,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetPlayerStatistics(statistic_names, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareGetPlayerStatistics,
             statistic_names,
             success_cb, fail_cb, **error_handlers)
@@ -427,7 +426,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callUpdatePlayerStatistics(statistics, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareUpdatePlayerStatistics,
             statistics,
             success_cb, fail_cb, **error_handlers)
@@ -456,7 +455,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callUpdateAvatarUrl(image_url, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareUpdateAvatarUrl,
             image_url,
             success_cb, fail_cb, **error_handlers)
@@ -503,7 +502,7 @@ class PlayFabClientManager(PlayFabBaseMethods):
 
     @staticmethod
     def callExecuteCloudScript(function_name, params, success_cb, fail_cb, **error_handlers):
-        PlayFabClientManager.callPlayFabAPI(
+        return PlayFabClientManager.callPlayFabAPI(
             PlayFabClientManager.prepareExecuteCloudScript,
             function_name, params,
             success_cb, fail_cb, **error_handlers)

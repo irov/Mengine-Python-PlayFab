@@ -1,18 +1,17 @@
 from Foundation.DefaultManager import DefaultManager
 from Foundation.Manager import Manager
 from Foundation.TaskManager import TaskManager
-from PlayFab.PlayFabErrors import PlayFabError
+from PlayFab.PlayFabBaseMethods import PlayFabBaseMethods
 import PlayFab.PlayFabClientAPI as PlayFabClientAPI
 import PlayFab.PlayFabSettings as PlayFabSettings
 
 
-class PlayFabManager(Manager):
+class PlayFabManager(Manager, PlayFabBaseMethods):
     GOOGLE_GAME_SOCIAL_PLUGIN = "AndroidGGameSocialPlugin"
     IOS_GAME_CENTER_PLUGIN = "iOSGameCenterPlugin"
     PLATFORM_IDENTITY_TIMEOUT_TASK = "PlayFabPlatformIdentityTimeout"
 
     timestamps_queue = []
-    s_debug_pretty_print = False
 
     s_identity_linking_initialized = False
     s_android_callback_ids = []
@@ -25,32 +24,6 @@ class PlayFabManager(Manager):
     s_platform_identity_success_cb = None
     s_platform_identity_error_cb = None
     s_platform_identity_canceled_cb = None
-
-    # = DEBUG ===========================================================================================================
-    @staticmethod
-    def print_data(msg, data):
-        DebugPlayFabResponseDataPrint = DefaultManager.getDefaultBool("DebugPlayFabResponseDataPrint", False)
-
-        if isinstance(data, PlayFabError) is False and PlayFabManager.s_debug_pretty_print is True:
-            data = Mengine.encodeJSON(data, indent=2)
-
-        LINE_CHAR_COUNT = 79
-        Trace.msg("\n" + " {} ".format(msg).center(LINE_CHAR_COUNT, '#'))
-
-        if DebugPlayFabResponseDataPrint is True:
-            Trace.msg(data)
-        else:
-            Trace.msg("! PlayFab response data print is disabled.")
-            Trace.msg("! For enable change default param 'DebugPlayFabResponseDataPrint' to True")
-
-        Trace.msg("".center(LINE_CHAR_COUNT, '#') + "\n")
-
-    # = INIT ============================================================================================================
-    @staticmethod
-    def _onInitialize(*args):
-        PlayFabManager.s_debug_pretty_print = DefaultManager.getDefaultBool("DebugDataPrettyPrint", False)
-
-        PlayFabManager.initializeIdentityLinking()
 
     @staticmethod
     def initializeIdentityLinking():
@@ -132,12 +105,17 @@ class PlayFabManager(Manager):
 
         PlayFabManager.__clearPlatformIdentityRequest(cancel_timeout)
 
-        if status == "Success":
-            success_cb(payload)
-        elif status == "Canceled":
-            canceled_cb(payload)
-        else:
-            error_cb(payload)
+        try:
+            if status == "Success":
+                success_cb(payload)
+            elif status == "Canceled":
+                canceled_cb(payload)
+            else:
+                error_cb(payload)
+        except Exception as e:
+            PlayFabSettings.GlobalExceptionLogger(e)
+
+            return False
 
         return True
 
@@ -281,173 +259,6 @@ class PlayFabManager(Manager):
 
         PlayFabManager.ensureIdentityLinks()
 
-    # = SERVICE =========================================================================================================
-    @staticmethod
-    def checkErrorHandler(error, handlers, log=False):
-        if error not in handlers:
-            if log:
-                Trace.log("Manager", 0, "[PlayFabManager|checkErrorHandler] no error handler for error '{}'".format(error))
-            return False
-        elif handlers[error] is None:
-            if log:
-                Trace.log("Manager", 0, "[PlayFabManager|checkErrorHandler] invalid error handler"
-                                        " '{}' for error '{}'".format(handlers[error], error))
-            return False
-        return True
-
-    @staticmethod
-    def checkErrorHandlers(errors, handlers, log=False):
-        for error in errors:
-            if PlayFabManager.checkErrorHandler(error, handlers, log) is False:
-                return False
-        return True
-
-    # = BASE ============================================================================================================
-    @staticmethod
-    def make_api_cb(api_method, success_cb, fail_cb, error_handlers):
-        DebugPlayFabLogOnSuccess = DefaultManager.getDefault("DebugPlayFabLogOnSuccess", False)
-        DebugPlayFabLogOnFail = DefaultManager.getDefault("DebugPlayFabLogOnFail", False)
-
-        def __cb(response, error):
-            if error is not None:
-                if DebugPlayFabLogOnFail:
-                    PlayFabManager.print_data("[PlayFabManager] '{}' call - ERROR".format(api_method.__name__), error)
-                if isinstance(error, PlayFabError) is False:
-                    playFabError = PlayFabError(error)
-                else:
-                    playFabError = error
-                error_handler = error_handlers.get(playFabError.Error, fail_cb)
-
-                error_handler(playFabError)
-
-                return
-
-            if response is not None:
-                if DebugPlayFabLogOnSuccess:
-                    PlayFabManager.print_data("[PlayFabManager] '{}' call - RESPONSE".format(api_method.__name__), response)
-                success_cb(response)
-
-                return
-
-            if DebugPlayFabLogOnSuccess:
-                PlayFabManager.print_data("[PlayFabManager] '{}' call - EMPTY RESPONSE".format(api_method.__name__), {})
-
-            success_cb({})
-
-        return __cb
-
-    @staticmethod
-    def checkPlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers):
-        if api_method is None:
-            Trace.log("Manager", 0, "[PlayFabManager|callPlayFabAPI] api_method is None")
-            return False
-
-        if request is None:
-            Trace.log("Manager", 0, "[PlayFabManager|callPlayFabAPI] request is None")
-            return False
-
-        if success_cb is None:
-            Trace.log("Manager", 0, "[PlayFabManager|callPlayFabAPI] success_cb is None")
-            return False
-
-        if fail_cb is None:
-            Trace.log("Manager", 0, "[PlayFabManager|callPlayFabAPI] fail_cb is None")
-            return False
-
-        if possible_errors is None:
-            Trace.log("Manager", 0, "[PlayFabManager|callPlayFabAPI] possible_errors is None")
-            return False
-
-        DebugPlayFabLogErrorHandlerCheck = DefaultManager.getDefault("DebugPlayFabLogErrorHandlerCheck", False)
-
-        for error_name in possible_errors:
-            PlayFabManager.checkErrorHandler(error_name, error_handlers, log=DebugPlayFabLogErrorHandlerCheck)
-
-        return True
-
-    @staticmethod
-    def preparePlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers):
-        if PlayFabManager.checkPlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers) is False:
-            return
-
-        __api_cb = PlayFabManager.make_api_cb(api_method, success_cb, fail_cb, error_handlers)
-
-        return api_method, request, __api_cb
-
-    @staticmethod
-    def callPlayFabAPI(api_prepare_method, *args, **kwargs):
-        prepared_api = api_prepare_method(*args, **kwargs)
-
-        if prepared_api is None:
-            return False
-
-        api_method, request, __api_cb = prepared_api
-
-        try:
-            api_method(request, __api_cb)
-        except Exception:
-            Trace.log("PlayFab", 0, "PlayFab API request setup failed")
-
-            __api_cb(None, PlayFabError())
-
-            return False
-
-        return True
-
-    @staticmethod
-    def scopePlayFabAPI(source, api_prepare_method, *args, **kwargs):
-        prepared_api = api_prepare_method(*args, **kwargs)
-
-        if prepared_api is None:
-            Trace.log("Manager", 0, "[PlayFabManager|scopePlayFabAPI] invalid prepared API")
-
-            return
-
-        api_method, request, __api_cb = prepared_api
-
-        def __task_cb(isSkip, __complete_cb):
-            completed = [False]
-
-            def __complete_once():
-                if completed[0] is True:
-                    return
-
-                completed[0] = True
-                __complete_cb(isSkip)
-
-            def __scope_api_cb(response, error):
-                __api_cb(response, error)
-                __complete_once()
-
-            try:
-                api_method(request, __scope_api_cb)
-            except Exception:
-                Trace.log("PlayFab", 0, "PlayFab API request setup failed")
-
-                __api_cb(None, PlayFabError())
-                __complete_once()
-
-        source.addCallback(__task_cb)
-
-    @staticmethod
-    def do_before_cb(cb):
-        """
-        decorator for adding extra logic before response call api cb
-        func must return modified args
-        :param cb: api cb (ex. success_cb)
-        :return:
-        """
-        if cb is None:
-            Trace.log("Manager", 0, "[PlayFabManager|cb_wrap_with_check] cb is None")
-            return None
-
-        def __real_decorator(func):
-            def __wrapper(response):
-                modified_response = func(response)
-                cb(modified_response)
-            return __wrapper
-        return __real_decorator
-
     # = API ============================================================================================================
     # RegisterPlayFabUser
     @staticmethod
@@ -478,7 +289,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callRegisterPlayFabUser(user, password, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareRegisterPlayFabUser,
             user, password,
             success_cb, fail_cb, **error_handlers)
@@ -505,7 +316,6 @@ class PlayFabManager(Manager):
             {
                 "Username": user,
                 "Password": password,
-                "TitleId": "1"
             },
             __success_cb, fail_cb, [
                 "AccountNotFound",
@@ -703,7 +513,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callLoginWithPlayFab(user, password, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareLoginWithPlayFab,
             user, password,
             success_cb, fail_cb, **error_handlers)
@@ -816,8 +626,11 @@ class PlayFabManager(Manager):
                     return
 
                 completed[0] = True
-                cb(value)
-                __complete_cb(isSkip)
+
+                try:
+                    cb(value)
+                finally:
+                    __complete_cb(isSkip)
 
             def __login_success(response):
                 __complete_once(success_cb, response)
@@ -868,10 +681,17 @@ class PlayFabManager(Manager):
                 __complete_cb(isSkip)
                 return
 
-            PlayFabManager.__requestPlatformIdentity(
-                __identity_success,
-                __login_fallback,
-                __login_fallback)
+            try:
+                PlayFabManager.__requestPlatformIdentity(
+                    __identity_success,
+                    __login_fallback,
+                    __login_fallback)
+            except Exception as e:
+                PlayFabSettings.GlobalExceptionLogger(e)
+                PlayFabManager.__clearPlatformIdentityRequest()
+
+                if completed[0] is False:
+                    __login_fallback("PlatformIdentityRequestFailed")
 
         source.addCallback(__task_cb)
 
@@ -953,10 +773,19 @@ class PlayFabManager(Manager):
 
             Trace.msg_warn("[PlayFab] Platform identity link skipped: {}".format(reason))
 
-        return PlayFabManager.__requestPlatformIdentity(
-            __identity_success,
-            __identity_failed,
-            __identity_failed)
+        try:
+            return PlayFabManager.__requestPlatformIdentity(
+                __identity_success,
+                __identity_failed,
+                __identity_failed)
+        except Exception as e:
+            PlayFabSettings.GlobalExceptionLogger(e)
+            PlayFabManager.__clearPlatformIdentityRequest()
+
+            if PlayFabManager.s_platform_link_in_progress is True:
+                __identity_failed("PlatformIdentityRequestFailed")
+
+            return False
 
     @staticmethod
     def __linkPlatformIdentity(identity):
@@ -969,11 +798,11 @@ class PlayFabManager(Manager):
 
             Trace.msg_dev("[PlayFab] {} link success".format(provider))
 
-        def __already_linked_cb(error):
+        def __conflict_cb(error):
             PlayFabManager.s_platform_link_in_progress = False
             PlayFabManager.s_platform_link_attempted = True
 
-            Trace.msg_dev("[PlayFab] {} account is already linked".format(provider))
+            Trace.msg_warn("[PlayFab] {} link conflict: {}".format(provider, error.Error))
 
         def __fail_cb(error):
             PlayFabManager.s_platform_link_in_progress = False
@@ -987,13 +816,13 @@ class PlayFabManager(Manager):
                 False,
                 __success_cb,
                 __fail_cb,
-                AccountAlreadyLinked=__already_linked_cb,
+                AccountAlreadyLinked=__conflict_cb,
                 AccountLinkedToABannedPlayer=__fail_cb,
                 GoogleOAuthError=__fail_cb,
                 GoogleOAuthNotConfiguredForTitle=__fail_cb,
                 InvalidGooglePlayGamesServerAuthCode=__fail_cb,
                 InvalidGoogleToken=__fail_cb,
-                LinkedAccountAlreadyClaimed=__fail_cb)
+                LinkedAccountAlreadyClaimed=__conflict_cb)
 
         if provider == "GameCenter":
             return PlayFabManager.callLinkGameCenterAccount(
@@ -1001,11 +830,11 @@ class PlayFabManager(Manager):
                 False,
                 __success_cb,
                 __fail_cb,
-                AccountAlreadyLinked=__already_linked_cb,
+                AccountAlreadyLinked=__conflict_cb,
                 AccountLinkedToABannedPlayer=__fail_cb,
                 GameCenterAuthenticationFailed=__fail_cb,
                 InvalidGameCenterAuthRequest=__fail_cb,
-                LinkedAccountAlreadyClaimed=__fail_cb)
+                LinkedAccountAlreadyClaimed=__conflict_cb)
 
         PlayFabManager.s_platform_link_in_progress = False
         PlayFabManager.s_platform_link_attempted = True
@@ -1129,7 +958,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callUpdateUserTitleDisplayName(new_name, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareUpdateUserTitleDisplayName,
             new_name,
             success_cb, fail_cb, **error_handlers)
@@ -1163,7 +992,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callGetUserReadOnlyData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetUserReadOnlyData,
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
@@ -1196,7 +1025,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callGetTitleData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetTitleData,
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
@@ -1238,7 +1067,7 @@ class PlayFabManager(Manager):
     @staticmethod
     def callGetLeaderboard(statistic_name, max_result_count, profile_constraints,
                            success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetLeaderboard,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
@@ -1281,7 +1110,7 @@ class PlayFabManager(Manager):
     @staticmethod
     def callGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
                                        success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetLeaderboardAroundPlayer,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
@@ -1318,7 +1147,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callGetAccountInfo(success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetAccountInfo,
             success_cb, fail_cb, **error_handlers)
 
@@ -1350,7 +1179,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callGetPlayerStatistics(statistic_names, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareGetPlayerStatistics,
             statistic_names,
             success_cb, fail_cb, **error_handlers)
@@ -1387,7 +1216,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callUpdatePlayerStatistics(statistics, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareUpdatePlayerStatistics,
             statistics,
             success_cb, fail_cb, **error_handlers)
@@ -1416,7 +1245,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callUpdateAvatarUrl(image_url, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareUpdateAvatarUrl,
             image_url,
             success_cb, fail_cb, **error_handlers)
@@ -1463,7 +1292,7 @@ class PlayFabManager(Manager):
 
     @staticmethod
     def callExecuteCloudScript(function_name, params, success_cb, fail_cb, **error_handlers):
-        PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabAPI(
             PlayFabManager.prepareExecuteCloudScript,
             function_name, params,
             success_cb, fail_cb, **error_handlers)
@@ -1486,15 +1315,12 @@ class PlayFabManager(Manager):
             return
 
         if current_timestamp - PlayFabManager.timestamps_queue[-1] <= 2:
-            if _DEVELOPMENT is True:
-                Trace.log("Manager", 0, "Warning!!! Less than 2 seconds passed between requests (call {})".format(function_name))
-            else:
-                Trace.msg_err("PlayFabManager [W] Less than 2 seconds passed between requests (call {})".format(function_name))
+            Trace.msg_warn("[PlayFab] Less than 2 seconds passed between requests (call {})".format(function_name))
 
         if len(PlayFabManager.timestamps_queue) >= 10:
             old_time_stamp = PlayFabManager.timestamps_queue.pop(0)
 
             if current_timestamp - old_time_stamp <= 10:
-                Trace.log("Manager", 0, 'Warning!!! limit "Player data value updates per 15 seconds" has been exceeded')
+                Trace.msg_warn('[PlayFab] Limit "Player data value updates per 15 seconds" has been exceeded')
 
         source.addFunction(PlayFabManager.timestamps_queue.append, current_timestamp)

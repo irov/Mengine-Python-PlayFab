@@ -1,8 +1,10 @@
 # coding=utf-8
 import PlayFab.PlayFabAuthenticationAPI as PlayFabAuthenticationAPI
 import PlayFab.PlayFabMultiplayerAPI as PlayFabMultiplayerAPI
+import PlayFab.PlayFabSettings as PlayFabSettings
 
-from PlayFabBaseMethods import PlayFabBaseMethods
+from PlayFab.PlayFabBaseMethods import PlayFabBaseMethods
+from PlayFab.PlayFabErrors import PlayFabError
 
 
 class PlayFabMultiplayerManager(PlayFabBaseMethods):
@@ -37,32 +39,86 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
                 "MatchmakingAttributeInvalid",
                 "MatchmakingBadRequest",
                 "MatchmakingEntityInvalid",
+                "MatchmakingMemberProfileInvalid",
                 "MatchmakingNumberOfPlayersInTicketTooLarge",
                 "MatchmakingPlayerAttributesInvalid",
                 "MatchmakingPlayerAttributesTooLarge",
                 "MatchmakingQueueNotFound",
                 "MatchmakingRateLimitExceeded",
+                "MatchmakingTicketMembershipLimitExceeded",
                 "MatchmakingUnauthorized",
             ],
             error_handlers)
 
     @staticmethod
-    def callCreateMatchmakingTicket(give_up_after_second, queue_name, success_cb, fail_cb, **error_handlers):
-        PlayFabMultiplayerManager.callPlayFabAPI(
+    def callCreateMatchmakingTicket(title_player_id, give_up_after_second, queue_name,
+                                    success_cb, fail_cb, **error_handlers):
+        return PlayFabMultiplayerManager.callPlayFabAPI(
             PlayFabMultiplayerManager.prepareCreateMatchmakingTicket,
-            give_up_after_second, queue_name,
+            title_player_id, give_up_after_second, queue_name,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def scopeCreateMatchmakingTicket(source, give_up_after_second, queue_name, success_cb, fail_cb, **error_handlers):
-        def cb(*args):
-            print("args", args[0]['Entity']["Id"])
-            PlayFabMultiplayerManager.callPlayFabAPI(
-                PlayFabMultiplayerManager.prepareCreateMatchmakingTicket,
-                args[0]['Entity']["Id"], give_up_after_second, queue_name,
-                success_cb, fail_cb, **error_handlers)
+        def __task_cb(isSkip, __complete_cb):
+            completed = [False]
 
-        source.addFunction(PlayFabAuthenticationAPI.GetEntityToken, {}, cb)
+            def __complete_once(cb, value):
+                if completed[0] is True:
+                    return
+
+                completed[0] = True
+
+                try:
+                    cb(value)
+                finally:
+                    __complete_cb(isSkip)
+
+            def __success_cb(response):
+                __complete_once(success_cb, response)
+
+            def __fail_cb(error):
+                if isinstance(error, PlayFabError) is False:
+                    error = PlayFabError(error)
+
+                __complete_once(fail_cb, error)
+
+            def __entity_token_cb(response, error):
+                if error is not None:
+                    __fail_cb(error)
+                    return
+
+                entity = response.get("Entity") if isinstance(response, dict) else None
+                title_player_id = entity.get("Id") if isinstance(entity, dict) else None
+
+                if title_player_id is None:
+                    __fail_cb(PlayFabError({
+                        "code": 400,
+                        "status": "Invalid Entity Token",
+                        "error": "InvalidParams",
+                        "errorCode": 1000,
+                        "errorMessage": "PlayFab entity token response has no entity id",
+                    }))
+                    return
+
+                started = PlayFabMultiplayerManager.callCreateMatchmakingTicket(
+                    title_player_id, give_up_after_second, queue_name,
+                    __success_cb, __fail_cb, **error_handlers)
+
+                if started is False and completed[0] is False:
+                    __fail_cb(PlayFabError())
+
+            if isSkip is True:
+                __complete_cb(isSkip)
+                return
+
+            try:
+                PlayFabAuthenticationAPI.GetEntityToken({}, __entity_token_cb)
+            except Exception as e:
+                PlayFabSettings.GlobalExceptionLogger(e)
+                __fail_cb(PlayFabError())
+
+        source.addCallback(__task_cb)
 
     @staticmethod
     def prepareGetMatchmakingTicket(ticket_id, queue_name, success_cb, fail_cb, **error_handlers):
@@ -99,18 +155,14 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
                 TicketId - The Id of the ticket to find a match for.
             :return: response
             """
-            print("response", response)
-
             return response
-            pass
-
-        print("ticket_id, queue_name", ticket_id, queue_name)
 
         return PlayFabMultiplayerManager.preparePlayFabAPI(
             PlayFabMultiplayerAPI.GetMatchmakingTicket,
             {
                 "TicketId": ticket_id,
                 "QueueName": queue_name,
+                "EscapeObject": False,
             },
             __success_cb, fail_cb,
             [
@@ -125,7 +177,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetMatchmakingTicket(ticket_id, queue_name, success_cb, fail_cb, **error_handlers):
-        PlayFabMultiplayerManager.callPlayFabAPI(
+        return PlayFabMultiplayerManager.callPlayFabAPI(
             PlayFabMultiplayerManager.prepareGetMatchmakingTicket,
             ticket_id, queue_name,
             success_cb, fail_cb, **error_handlers)
@@ -153,7 +205,6 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
             :return:
             """
 
-            print("response")
             return response
 
         return PlayFabMultiplayerManager.preparePlayFabAPI(
@@ -161,6 +212,8 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
             {
                 "MatchId": match_id,
                 "QueueName": queue_name,
+                "EscapeObject": False,
+                "ReturnMemberAttributes": False,
             },
             __success_cb, fail_cb,
             [
@@ -174,7 +227,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
 
     @staticmethod
     def callGetMatch(match_id, queue_name, success_cb, fail_cb, **error_handlers):
-        PlayFabMultiplayerManager.callPlayFabAPI(
+        return PlayFabMultiplayerManager.callPlayFabAPI(
             PlayFabMultiplayerManager.prepareGetMatch,
             match_id, queue_name,
             success_cb, fail_cb, **error_handlers)
@@ -191,7 +244,6 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
     def prepareCancelMatchmakingTicket(ticket_id, queue_name, success_cb, fail_cb, **error_handlers):
         @PlayFabMultiplayerManager.do_before_cb(success_cb)
         def __success_cb(response):
-            print("response")
             return response
 
         return PlayFabMultiplayerManager.preparePlayFabAPI(
@@ -213,7 +265,7 @@ class PlayFabMultiplayerManager(PlayFabBaseMethods):
 
     @staticmethod
     def callCancelMatchmakingTicket(ticket_id, queue_name, success_cb, fail_cb, **error_handlers):
-        PlayFabMultiplayerManager.callPlayFabAPI(
+        return PlayFabMultiplayerManager.callPlayFabAPI(
             PlayFabMultiplayerManager.prepareCancelMatchmakingTicket,
             ticket_id, queue_name,
             success_cb, fail_cb, **error_handlers)

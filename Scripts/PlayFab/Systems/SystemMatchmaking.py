@@ -1,8 +1,9 @@
 # coding=utf-8
 from Foundation.System import System
 from Foundation.TaskManager import TaskManager
+from Notification import Notification
 
-from PlayFab.PlayFabManager import PlayFabManager
+from PlayFab.PlayFabMultiplayerManager import PlayFabMultiplayerManager
 
 
 QUEUE_1_VS_1_NAME = "queue_dots_1vs1"
@@ -24,7 +25,7 @@ class SystemMatchmaking(System):
         return True
 
     def __cbStartMatchSearch(self, semaphore):
-        with TaskManager.createTaskChain(name="MatchSearch") as tc:
+        with TaskManager.createTaskChain(Name="MatchSearch") as tc:
             with tc.addRaceTask(2) as (tc_matchmaking, tc_cancel):
                 tc_matchmaking.addScope(self.__scopeCreateTicket)
                 tc_matchmaking.addScope(self.__scopeCheckTicketStatus)
@@ -44,10 +45,11 @@ class SystemMatchmaking(System):
             semaphore_ticket_created.setValue(True)
 
         def fail_cb(*args):
-            print("SystemMatchmaking fail_cb args", args)
+            Trace.msg_warn("[PlayFab] Create matchmaking ticket failed: {}".format(args[0]))
+            Notification.notify(Notificator.onCancelMatchSearch)
 
         source.addScope(
-            PlayFabManager.scopeCreateMatchmakingTicket,    # fixme
+            PlayFabMultiplayerManager.scopeCreateMatchmakingTicket,
             GIVE_UP_AFTER_SECONDS,
             QUEUE_1_VS_1_NAME,
             success_cb,
@@ -64,8 +66,8 @@ class SystemMatchmaking(System):
                 semaphore_match_is_ready.setValue(True)
 
         def fail_cb(*args):
-            print("SystemMatchmaking fail_cb args", args[0].GenerateErrorReport())
-            pass
+            Trace.msg_warn("[PlayFab] Get matchmaking ticket failed: {}".format(args[0]))
+            Notification.notify(Notificator.onCancelMatchSearch)
 
         semaphore_match_is_ready = Semaphore(False, "MatchIsReady")
         ticket_id = self.tickets.get(QUEUE_1_VS_1_NAME)
@@ -75,7 +77,7 @@ class SystemMatchmaking(System):
 
         with source.addRepeatTask() as (source_repeat, source_until):
             source_repeat.addScope(
-                PlayFabManager.scopeGetMatchmakingTicket,    # fixme
+                PlayFabMultiplayerManager.scopeGetMatchmakingTicket,
                 ticket_id,
                 QUEUE_1_VS_1_NAME,
                 success_cb,
@@ -96,11 +98,11 @@ class SystemMatchmaking(System):
             pass
 
         def fail_cb(*args):
-            print("SystemMatchmaking fail_cb args", args[0].GenerateErrorReport())
-            pass
+            Trace.msg_warn("[PlayFab] Get match failed: {}".format(args[0]))
+            Notification.notify(Notificator.onCancelMatchSearch)
 
         source.addScope(
-            PlayFabManager.scopeGetMatch,    # fixme
+            PlayFabMultiplayerManager.scopeGetMatch,
             match_id,
             QUEUE_1_VS_1_NAME,
             success_cb,
@@ -118,7 +120,7 @@ class SystemMatchmaking(System):
         def internal_fail_cb(response):
             pass
 
-        PlayFabManager.callCancelMatchmakingTicket(    # fixme
+        PlayFabMultiplayerManager.callCancelMatchmakingTicket(
             ticket_id=ticket_id,
             queue_name=QUEUE_1_VS_1_NAME,
             success_cb=internal_success_cb,
