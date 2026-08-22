@@ -103,13 +103,4 @@ def GetURL(methodUrl, getParams):
     return "".join(url)
 
 
-def DefaultExceptionLogger(exceptionObj):
-    Trace.log_exception("PlayFab", 0, "Unexpected error: {}".format(exceptionObj))
-
-
-def MengineExceptionLogger(exceptionObj):
-    Trace.log("PlayFab", 0, "[PlayFab-PythonSDK] Exception:\n> {}".format(exceptionObj))
-
-
 GlobalErrorHandler = None
-GlobalExceptionLogger = MengineExceptionLogger

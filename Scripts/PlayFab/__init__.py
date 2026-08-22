@@ -1,6 +1,34 @@
 def onInitialize():
     Trace.msg_dev("PlayFab.onInitialize")
 
+    from Foundation.TaskManager import TaskManager
+
+    tasks = [
+        "TaskPlayFabAuthenticationGetEntityToken",
+        "TaskPlayFabClientAttributeInstall",
+        "TaskPlayFabClientExecuteCloudScript",
+        "TaskPlayFabClientGetAccountInfo",
+        "TaskPlayFabClientGetLeaderboard",
+        "TaskPlayFabClientGetTitleData",
+        "TaskPlayFabClientLinkCustomID",
+        "TaskPlayFabClientLinkGameCenterAccount",
+        "TaskPlayFabClientLinkGooglePlayGamesServicesAccount",
+        "TaskPlayFabClientLoginWithGameCenter",
+        "TaskPlayFabClientLoginWithGooglePlayGamesServices",
+        "TaskPlayFabClientLoginWithPlayFab",
+        "TaskPlayFabClientRegisterPlayFabUser",
+        "TaskPlayFabClientUpdateUserTitleDisplayName",
+        "TaskPlayFabCreateMatchmakingTicket",
+        "TaskPlayFabMultiplayerCancelMatchmakingTicket",
+        "TaskPlayFabMultiplayerCreateMatchmakingTicket",
+        "TaskPlayFabMultiplayerGetMatch",
+        "TaskPlayFabMultiplayerGetMatchmakingTicket",
+        "TaskPlayFabPlatformLogin",
+        "TaskPlayFabRequest",
+    ]
+
+    TaskManager.importTasks("PlayFab.Task", tasks)
+
     from PlayFab.PlayFabManager import PlayFabManager
     Mengine.addGlobalModule("PlayFabManager", PlayFabManager)
 

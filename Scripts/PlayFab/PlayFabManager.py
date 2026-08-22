@@ -2,7 +2,6 @@ from Foundation.DefaultManager import DefaultManager
 from Foundation.Manager import Manager
 from Foundation.TaskManager import TaskManager
 from PlayFab.PlayFabBaseMethods import PlayFabBaseMethods
-import PlayFab.PlayFabClientAPI as PlayFabClientAPI
 import PlayFab.PlayFabSettings as PlayFabSettings
 
 
@@ -21,9 +20,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     s_platform_link_attempted = False
     s_platform_identity_request_sequence = 0
     s_platform_identity_request_id = None
-    s_platform_identity_success_cb = None
-    s_platform_identity_error_cb = None
-    s_platform_identity_canceled_cb = None
+    s_platform_identity_callbacks = {}
 
     @staticmethod
     def initializeIdentityLinking():
@@ -85,13 +82,20 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def __clearPlatformIdentityRequest(cancel_timeout=True):
+        PlayFabManager.s_platform_identity_request_id = None
+        PlayFabManager.s_platform_identity_callbacks = {}
+
         if cancel_timeout is True:
             PlayFabManager.__cancelPlatformIdentityTimeout()
 
-        PlayFabManager.s_platform_identity_request_id = None
-        PlayFabManager.s_platform_identity_success_cb = None
-        PlayFabManager.s_platform_identity_error_cb = None
-        PlayFabManager.s_platform_identity_canceled_cb = None
+    @staticmethod
+    def cancelPlatformIdentityRequest(request_id):
+        if request_id != PlayFabManager.s_platform_identity_request_id:
+            return False
+
+        PlayFabManager.__clearPlatformIdentityRequest()
+
+        return True
 
     @staticmethod
     def __completePlatformIdentityRequest(request_id, status, payload=None, cancel_timeout=True):
@@ -99,23 +103,19 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             Trace.msg_dev("[PlayFab] Ignored stale platform identity callback")
             return False
 
-        success_cb = PlayFabManager.s_platform_identity_success_cb
-        error_cb = PlayFabManager.s_platform_identity_error_cb
-        canceled_cb = PlayFabManager.s_platform_identity_canceled_cb
+        callbacks = PlayFabManager.s_platform_identity_callbacks
+        success_cb = callbacks["Success"]
+        error_cb = callbacks["Error"]
+        canceled_cb = callbacks["Canceled"]
 
         PlayFabManager.__clearPlatformIdentityRequest(cancel_timeout)
 
-        try:
-            if status == "Success":
-                success_cb(payload)
-            elif status == "Canceled":
-                canceled_cb(payload)
-            else:
-                error_cb(payload)
-        except Exception as e:
-            PlayFabSettings.GlobalExceptionLogger(e)
-
-            return False
+        if status == "Success":
+            success_cb(payload)
+        elif status == "Canceled":
+            canceled_cb(payload)
+        else:
+            error_cb(payload)
 
         return True
 
@@ -194,7 +194,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
         return False
 
     @staticmethod
-    def __requestPlatformIdentity(success_cb, error_cb, canceled_cb):
+    def requestPlatformIdentity(success_cb, error_cb, canceled_cb):
         if PlayFabManager.s_platform_identity_request_id is not None:
             error_cb("RequestAlreadyInProgress")
             return False
@@ -228,9 +228,11 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
         PlayFabManager.s_platform_identity_request_sequence += 1
         request_id = PlayFabManager.s_platform_identity_request_sequence
         PlayFabManager.s_platform_identity_request_id = request_id
-        PlayFabManager.s_platform_identity_success_cb = success_cb
-        PlayFabManager.s_platform_identity_error_cb = error_cb
-        PlayFabManager.s_platform_identity_canceled_cb = canceled_cb
+        PlayFabManager.s_platform_identity_callbacks = {
+            "Success": success_cb,
+            "Error": error_cb,
+            "Canceled": canceled_cb,
+        }
 
         timeout_delay = DefaultManager.getDefaultInt("PlayFabPlatformIdentityTimeout", 8) * 1000.0
         with TaskManager.createTaskChain(Name=PlayFabManager.PLATFORM_IDENTITY_TIMEOUT_TASK) as timeout:
@@ -238,14 +240,16 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             timeout.addFunction(PlayFabManager.__onPlatformIdentityTimeout, request_id)
 
         if authenticated is True:
-            return PlayFabManager.__startPlatformIdentityRequest(request_id, provider)
+            PlayFabManager.__startPlatformIdentityRequest(request_id, provider)
+
+            return request_id
 
         def __authenticated_cb():
             PlayFabManager.__startPlatformIdentityRequest(request_id, provider)
 
         Mengine.waitSemaphore(authenticated_semaphore, __authenticated_cb)
 
-        return True
+        return request_id
 
     @staticmethod
     def __onLoginSuccess(identity_provider=None):
@@ -271,8 +275,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
             return response
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.RegisterPlayFabUser,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientRegisterPlayFabUser",
             {
                 "Username": user,
                 "Password": password,
@@ -289,7 +293,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def callRegisterPlayFabUser(user, password, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareRegisterPlayFabUser,
             user, password,
             success_cb, fail_cb, **error_handlers)
@@ -297,7 +301,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeRegisterPlayFabUser(source, user, password, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareRegisterPlayFabUser,
             user, password,
             success_cb, fail_cb, **error_handlers)
@@ -311,8 +315,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
             return response
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LoginWithPlayFab,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLoginWithPlayFab",
             {
                 "Username": user,
                 "Password": password,
@@ -325,32 +329,11 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             ],
             error_handlers)
 
-    @staticmethod
-    def prepareLoginWithCustomID(custom_id, create_account, success_cb, fail_cb, **error_handlers):
-        @PlayFabManager.do_before_cb(success_cb)
-        def __success_cb(response):
-            PlayFabManager.__onLoginSuccess("CustomID")
-
-            return response
-
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LoginWithCustomID,
-            {
-                "CustomId": str(custom_id),
-                "CreateAccount": create_account,
-            },
-            __success_cb, fail_cb, [
-                "AccountNotFound",
-                "CustomIdNotLinked",
-                "InvalidTitleId",
-                "RequestViewConstraintParamsNotAllowed",
-            ],
-            error_handlers)
 
     @staticmethod
     def prepareLinkCustomID(custom_id, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LinkCustomID,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLinkCustomID",
             {
                 "CustomId": str(custom_id),
                 "ForceLink": force_link,
@@ -369,8 +352,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
             return response
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LoginWithGooglePlayGamesServices,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLoginWithGooglePlayGamesServices",
             {
                 "ServerAuthCode": server_auth_code,
                 "CreateAccount": create_account,
@@ -387,8 +370,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def prepareLinkGooglePlayGamesServicesAccount(server_auth_code, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LinkGooglePlayGamesServicesAccount,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLinkGooglePlayGamesServicesAccount",
             {
                 "ServerAuthCode": server_auth_code,
                 "ForceLink": force_link,
@@ -433,8 +416,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
         request = PlayFabManager.__makeGameCenterRequest(identity_verification, create_account=create_account)
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LoginWithGameCenter,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLoginWithGameCenter",
             request,
             __success_cb, fail_cb, [
                 "AccountNotFound",
@@ -448,8 +431,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     def prepareLinkGameCenterAccount(identity_verification, force_link, success_cb, fail_cb, **error_handlers):
         request = PlayFabManager.__makeGameCenterRequest(identity_verification, force_link=force_link)
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LinkGameCenterAccount,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLinkGameCenterAccount",
             request,
             success_cb, fail_cb, [
                 "AccountAlreadyLinked",
@@ -460,102 +443,46 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             ],
             error_handlers)
 
-    @staticmethod
-    def prepareLoginWithAndroidDeviceID(device_id, success_cb, fail_cb, **error_handlers):
-        @PlayFabManager.do_before_cb(success_cb)
-        def __success_cb(response):
-            PlayFabManager.__onLoginSuccess("AndroidDeviceID")
-
-            return response
-
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LoginWithAndroidDeviceID,
-            {
-                "AndroidDeviceId": str(device_id),
-                "CreateAccount": False
-            },
-            __success_cb, fail_cb, [
-                "EncryptionKeyMissing",
-                "EvaluationModePlayerCountExceeded",
-                "InvalidSignature",
-                "InvalidSignatureTime",
-                "PlayerSecretAlreadyConfigured",
-                "PlayerSecretNotConfigured",
-                "RequestViewConstraintParamsNotAllowed",
-            ],
-            error_handlers)
-
-    @staticmethod
-    def prepareLinkAndroidDeviceID(device_id, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.LinkAndroidDeviceID,
-            {
-                "AndroidDeviceId": str(device_id),
-                "ForceLink": force_link,
-            },
-            success_cb, fail_cb, [
-                "LinkedDeviceAlreadyClaimed",
-            ],
-            error_handlers)
-
-    @staticmethod
-    def prepareUnLinkAndroidDeviceID(device_id, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.UnlinkAndroidDeviceID,
-            {
-                "AndroidDeviceId": str(device_id),
-            },
-            success_cb, fail_cb, [
-                "AccountNotLinked",
-                "DeviceNotLinked"
-            ],
-            error_handlers)
 
     @staticmethod
     def callLoginWithPlayFab(user, password, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareLoginWithPlayFab,
             user, password,
             success_cb, fail_cb, **error_handlers)
 
-    @staticmethod
-    def callLoginWithCustomID(custom_id, create_account, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
-            PlayFabManager.prepareLoginWithCustomID,
-            custom_id, create_account,
-            success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def callLinkCustomID(custom_id, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareLinkCustomID,
             custom_id, force_link,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def callLoginWithGooglePlayGamesServices(server_auth_code, create_account, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareLoginWithGooglePlayGamesServices,
             server_auth_code, create_account,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def callLinkGooglePlayGamesServicesAccount(server_auth_code, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareLinkGooglePlayGamesServicesAccount,
             server_auth_code, force_link,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def callLoginWithGameCenter(identity_verification, create_account, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareLoginWithGameCenter,
             identity_verification, create_account,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def callLinkGameCenterAccount(identity_verification, force_link, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareLinkGameCenterAccount,
             identity_verification, force_link,
             success_cb, fail_cb, **error_handlers)
@@ -563,23 +490,16 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeLoginWithPlayFab(source, user, password, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareLoginWithPlayFab,
             user, password,
             success_cb, fail_cb, **error_handlers)
 
-    @staticmethod
-    def scopeLoginWithCustomID(source, custom_id, create_account, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareLoginWithCustomID,
-            custom_id, create_account,
-            success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def scopeLinkCustomID(source, custom_id, force_link, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareLinkCustomID,
             custom_id, force_link,
             success_cb, fail_cb, **error_handlers)
@@ -587,7 +507,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeLoginWithGooglePlayGamesServices(source, server_auth_code, create_account, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareLoginWithGooglePlayGamesServices,
             server_auth_code, create_account,
             success_cb, fail_cb, **error_handlers)
@@ -595,7 +515,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeLinkGooglePlayGamesServicesAccount(source, server_auth_code, force_link, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareLinkGooglePlayGamesServicesAccount,
             server_auth_code, force_link,
             success_cb, fail_cb, **error_handlers)
@@ -603,7 +523,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeLoginWithGameCenter(source, identity_verification, create_account, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareLoginWithGameCenter,
             identity_verification, create_account,
             success_cb, fail_cb, **error_handlers)
@@ -611,89 +531,17 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeLinkGameCenterAccount(source, identity_verification, force_link, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareLinkGameCenterAccount,
             identity_verification, force_link,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def scopeLoginWithPlatformAccount(source, success_cb, fallback_cb):
-        def __task_cb(isSkip, __complete_cb):
-            completed = [False]
-
-            def __complete_once(cb, value):
-                if completed[0] is True:
-                    return
-
-                completed[0] = True
-
-                try:
-                    cb(value)
-                finally:
-                    __complete_cb(isSkip)
-
-            def __login_success(response):
-                __complete_once(success_cb, response)
-
-            def __login_fallback(reason):
-                __complete_once(fallback_cb, reason)
-
-            def __identity_success(identity):
-                provider = identity.get("Provider")
-                credential = identity.get("Credential")
-
-                if provider == "GooglePlayGames":
-                    error_handlers = dict((error, __login_fallback) for error in [
-                        "AccountNotFound",
-                        "GoogleOAuthError",
-                        "GoogleOAuthNotConfiguredForTitle",
-                        "InvalidGooglePlayGamesServerAuthCode",
-                        "InvalidGoogleToken",
-                        "InvalidTitleId",
-                    ])
-                    started = PlayFabManager.callLoginWithGooglePlayGamesServices(
-                        credential,
-                        False,
-                        __login_success,
-                        __login_fallback,
-                        **error_handlers)
-                elif provider == "GameCenter":
-                    error_handlers = dict((error, __login_fallback) for error in [
-                        "AccountNotFound",
-                        "GameCenterAuthenticationFailed",
-                        "InvalidGameCenterAuthRequest",
-                        "InvalidTitleId",
-                    ])
-                    started = PlayFabManager.callLoginWithGameCenter(
-                        credential,
-                        False,
-                        __login_success,
-                        __login_fallback,
-                        **error_handlers)
-                else:
-                    __login_fallback("UnsupportedPlatformIdentity")
-                    return
-
-                if started is False:
-                    __login_fallback("PlatformLoginNotStarted")
-
-            if isSkip is True:
-                __complete_cb(isSkip)
-                return
-
-            try:
-                PlayFabManager.__requestPlatformIdentity(
-                    __identity_success,
-                    __login_fallback,
-                    __login_fallback)
-            except Exception as e:
-                PlayFabSettings.GlobalExceptionLogger(e)
-                PlayFabManager.__clearPlatformIdentityRequest()
-
-                if completed[0] is False:
-                    __login_fallback("PlatformIdentityRequestFailed")
-
-        source.addCallback(__task_cb)
+        source.addTask(
+            "TaskPlayFabPlatformLogin",
+            SuccessCb=success_cb,
+            FallbackCb=fallback_cb)
 
     @staticmethod
     def getOrCreateCustomID():
@@ -773,19 +621,10 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
             Trace.msg_warn("[PlayFab] Platform identity link skipped: {}".format(reason))
 
-        try:
-            return PlayFabManager.__requestPlatformIdentity(
-                __identity_success,
-                __identity_failed,
-                __identity_failed)
-        except Exception as e:
-            PlayFabSettings.GlobalExceptionLogger(e)
-            PlayFabManager.__clearPlatformIdentityRequest()
-
-            if PlayFabManager.s_platform_link_in_progress is True:
-                __identity_failed("PlatformIdentityRequestFailed")
-
-            return False
+        return PlayFabManager.requestPlatformIdentity(
+            __identity_success,
+            __identity_failed,
+            __identity_failed)
 
     @staticmethod
     def __linkPlatformIdentity(identity):
@@ -891,29 +730,6 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
         PlayFabManager.__completePlatformIdentityRequest(request_id, "Success", identity)
 
-    @staticmethod
-    def scopeLoginWithAndroidDeviceID(source, device_id, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareLoginWithAndroidDeviceID,
-            device_id,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeLinkAndroidDeviceID(source, device_id, force_link, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareLinkAndroidDeviceID,
-            device_id, force_link,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeUnLinkAndroidDeviceID(source, device_id, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareUnLinkAndroidDeviceID,
-            device_id,
-            success_cb, fail_cb, **error_handlers)
 
     # UpdateUserTitleDisplayName
 
@@ -943,8 +759,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             Data = response.get("DisplayName", {})
             return Data
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.UpdateUserTitleDisplayName,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientUpdateUserTitleDisplayName",
             {
                 "DisplayName": new_name
             },
@@ -958,7 +774,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def callUpdateUserTitleDisplayName(new_name, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareUpdateUserTitleDisplayName,
             new_name,
             success_cb, fail_cb, **error_handlers)
@@ -966,43 +782,11 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeUpdateUserTitleDisplayName(source, new_name, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareUpdateUserTitleDisplayName,
             new_name,
             success_cb, fail_cb, **error_handlers)
 
-    # GetUserReadOnlyData
-    @staticmethod
-    def prepareGetUserReadOnlyData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        @PlayFabManager.do_before_cb(success_cb)
-        def __success_cb(response):
-            data = response.get("Data", {})
-            return data
-
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.GetUserReadOnlyData,
-            {
-                "Keys": list_of_keys
-            },
-            __success_cb, fail_cb,
-            [
-                # no possible error codes in playfab documentation
-            ],
-            error_handlers)
-
-    @staticmethod
-    def callGetUserReadOnlyData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
-            PlayFabManager.prepareGetUserReadOnlyData,
-            list_of_keys,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeGetUserReadOnlyData(source, list_of_keys, success_cb, fail_cb, **error_handlers):
-        source.addScope(PlayFabManager.scopePlayFabAPI,
-                        PlayFabManager.prepareGetUserReadOnlyData,
-                        list_of_keys,
-                        success_cb, fail_cb, **error_handlers)
 
     # GetTitleData
     @staticmethod
@@ -1012,8 +796,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             Data = response.get("Data", {})
             return Data
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.GetTitleData,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientGetTitleData",
             {
                 "Keys": list_of_keys
             },
@@ -1025,7 +809,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def callGetTitleData(list_of_keys, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareGetTitleData,
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
@@ -1033,7 +817,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def scopeGetTitleData(source, list_of_keys, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareGetTitleData,
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
@@ -1050,8 +834,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
         if not profile_constraints:
             profile_constraints = {}
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.GetLeaderboard,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientGetLeaderboard",
             {
                 "StartPosition": 0,
                 "StatisticName": statistic_name,
@@ -1067,7 +851,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     @staticmethod
     def callGetLeaderboard(statistic_name, max_result_count, profile_constraints,
                            success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareGetLeaderboard,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
@@ -1076,53 +860,11 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     def scopeGetLeaderboard(source, statistic_name, max_result_count, profile_constraints,
                             success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareGetLeaderboard,
             statistic_name, max_result_count, profile_constraints,
             success_cb, fail_cb, **error_handlers)
 
-    # GetLeaderboardAroundPlayer
-    @staticmethod
-    def prepareGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
-                                          success_cb, fail_cb, **error_handlers):
-        @PlayFabManager.do_before_cb(success_cb)
-        def __success_cb(response):
-            Data = response.get("Leaderboard", {})
-            return Data
-
-        if not profile_constraints:
-            profile_constraints = {}
-
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.GetLeaderboardAroundPlayer,
-            {
-                "StatisticName": statistic_name,
-                "MaxResultsCount": max_result_count,
-                "ProfileConstraints": profile_constraints
-            },
-            __success_cb, fail_cb,
-            [
-                "AccountNotFound",
-                "LeaderboardVersionNotAvailable"
-            ],
-            error_handlers)
-
-    @staticmethod
-    def callGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
-                                       success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
-            PlayFabManager.prepareGetLeaderboardAroundPlayer,
-            statistic_name, max_result_count, profile_constraints,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeGetLeaderboardAroundPlayer(source, statistic_name, max_result_count, profile_constraints,
-                                        success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareGetLeaderboardAroundPlayer,
-            statistic_name, max_result_count, profile_constraints,
-            success_cb, fail_cb, **error_handlers)
 
     # GetAccountInfo
     @staticmethod
@@ -1134,8 +876,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
         playfab_id = Mengine.getCurrentAccountSetting("PlayFabId")
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.GetAccountInfo,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientGetAccountInfo",
             {
                 "PlayFabId": playfab_id
             },
@@ -1147,116 +889,17 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def callGetAccountInfo(success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareGetAccountInfo,
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
     def scopeGetAccountInfo(source, success_cb, fail_cb, **error_handlers):
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareGetAccountInfo,
             success_cb, fail_cb, **error_handlers)
 
-    # GetPlayerStatistics
-    @staticmethod
-    def prepareGetPlayerStatistics(statistic_names, success_cb, fail_cb, **error_handlers):
-        @PlayFabManager.do_before_cb(success_cb)
-        def __success_cb(response):
-            Data = response.get("Statistics", {})
-            return Data
-
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.GetPlayerStatistics,
-            {
-                "StatisticNames": statistic_names
-            },
-            __success_cb, fail_cb,
-            [
-                # no possible error codes in playfab documentation
-            ],
-            error_handlers)
-
-    @staticmethod
-    def callGetPlayerStatistics(statistic_names, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
-            PlayFabManager.prepareGetPlayerStatistics,
-            statistic_names,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeGetPlayerStatistics(source, statistic_names, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareGetPlayerStatistics,
-            statistic_names,
-            success_cb, fail_cb, **error_handlers)
-
-    # UpdatePlayerStatistics
-    @staticmethod
-    def prepareUpdatePlayerStatistics(statistics, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.UpdatePlayerStatistics,
-            {
-                "Statistics": statistics
-            },
-            success_cb, fail_cb,
-            [
-                "AccountNotFound",
-                "APINotEnabledForGameClientAccess",
-                "DuplicateStatisticName",
-                "StatisticCountLimitExceeded",
-                "StatisticNameConflict",
-                "StatisticNotFound",
-                "StatisticValueAggregationOverflow",
-                "StatisticVersionClosedForWrites",
-                "StatisticVersionInvalid",
-            ],
-            error_handlers)
-
-    @staticmethod
-    def callUpdatePlayerStatistics(statistics, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
-            PlayFabManager.prepareUpdatePlayerStatistics,
-            statistics,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeUpdatePlayerStatistics(source, statistics, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareUpdatePlayerStatistics,
-            statistics,
-            success_cb, fail_cb, **error_handlers)
-
-    # UpdateAvatarUrl
-    @staticmethod
-    def prepareUpdateAvatarUrl(image_url, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.UpdateAvatarUrl,
-            {
-                "ImageUrl": image_url
-            },
-            success_cb, fail_cb,
-            [
-                # no possible error codes in pl__on_get_profile_picture_linkayfab documentation
-            ],
-            error_handlers)
-
-    @staticmethod
-    def callUpdateAvatarUrl(image_url, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
-            PlayFabManager.prepareUpdateAvatarUrl,
-            image_url,
-            success_cb, fail_cb, **error_handlers)
-
-    @staticmethod
-    def scopeUpdateAvatarUrl(source, image_url, success_cb, fail_cb, **error_handlers):
-        source.addScope(
-            PlayFabManager.scopePlayFabAPI,
-            PlayFabManager.prepareUpdateAvatarUrl,
-            image_url,
-            success_cb, fail_cb, **error_handlers)
 
     # ExecuteCloudScript
     @staticmethod
@@ -1272,8 +915,8 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             function_result = response.get("FunctionResult")
             return function_result
 
-        return PlayFabManager.preparePlayFabAPI(
-            PlayFabClientAPI.ExecuteCloudScript,
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientExecuteCloudScript",
             {
                 "FunctionName": function_name,
                 "FunctionParameter": params,
@@ -1292,7 +935,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
     @staticmethod
     def callExecuteCloudScript(function_name, params, success_cb, fail_cb, **error_handlers):
-        return PlayFabManager.callPlayFabAPI(
+        return PlayFabManager.callPlayFabEndpoint(
             PlayFabManager.prepareExecuteCloudScript,
             function_name, params,
             success_cb, fail_cb, **error_handlers)
@@ -1301,7 +944,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
     def scopeExecuteCloudScript(source, function_name, params, success_cb, fail_cb, **error_handlers):
         source.addScope(PlayFabManager.scopeAddToTimeStampsQueue, function_name)
         source.addScope(
-            PlayFabManager.scopePlayFabAPI,
+            PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareExecuteCloudScript,
             function_name, params,
             success_cb, fail_cb, **error_handlers)

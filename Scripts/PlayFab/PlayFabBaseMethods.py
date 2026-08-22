@@ -1,6 +1,6 @@
 from Foundation.DefaultManager import DefaultManager
+from Foundation.TaskManager import TaskManager
 from PlayFab.PlayFabErrors import PlayFabError
-import PlayFab.PlayFabSettings as PlayFabSettings
 
 
 class PlayFabBaseMethods(object):
@@ -42,14 +42,14 @@ class PlayFabBaseMethods(object):
 
     # = BASE ===========================================================================================================
     @staticmethod
-    def make_api_cb(api_method, success_cb, fail_cb, error_handlers):
+    def makePlayFabEndpointCb(task_name, success_cb, fail_cb, error_handlers):
         DebugPlayFabLogOnSuccess = DefaultManager.getDefault("DebugPlayFabLogOnSuccess", False)
         DebugPlayFabLogOnFail = DefaultManager.getDefault("DebugPlayFabLogOnFail", False)
 
         def __cb(response, error):
             if error is not None:
                 if DebugPlayFabLogOnFail:
-                    PlayFabBaseMethods.print_data("[PlayFab] '{}' call - ERROR".format(api_method.__name__), error)
+                    PlayFabBaseMethods.print_data("[PlayFab] '{}' call - ERROR".format(task_name), error)
                 if isinstance(error, PlayFabError) is False:
                     playFabError = PlayFabError(error)
                 else:
@@ -62,38 +62,38 @@ class PlayFabBaseMethods(object):
 
             if response is not None:
                 if DebugPlayFabLogOnSuccess:
-                    PlayFabBaseMethods.print_data("[PlayFab] '{}' call - RESPONSE".format(api_method.__name__), response)
+                    PlayFabBaseMethods.print_data("[PlayFab] '{}' call - RESPONSE".format(task_name), response)
                 success_cb(response)
 
                 return
 
             if DebugPlayFabLogOnSuccess:
-                PlayFabBaseMethods.print_data("[PlayFab] '{}' call - EMPTY RESPONSE".format(api_method.__name__), {})
+                PlayFabBaseMethods.print_data("[PlayFab] '{}' call - EMPTY RESPONSE".format(task_name), {})
 
             success_cb({})
 
         return __cb
 
     @staticmethod
-    def checkPlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers):
-        if api_method is None:
-            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] api_method is None")
+    def checkPlayFabEndpoint(task_name, request, success_cb, fail_cb, possible_errors, error_handlers):
+        if not task_name:
+            Trace.log("Manager", 0, "[PlayFab|checkPlayFabEndpoint] task_name is empty")
             return False
 
         if request is None:
-            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] request is None")
+            Trace.log("Manager", 0, "[PlayFab|checkPlayFabEndpoint] request is None")
             return False
 
         if success_cb is None:
-            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] success_cb is None")
+            Trace.log("Manager", 0, "[PlayFab|checkPlayFabEndpoint] success_cb is None")
             return False
 
         if fail_cb is None:
-            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] fail_cb is None")
+            Trace.log("Manager", 0, "[PlayFab|checkPlayFabEndpoint] fail_cb is None")
             return False
 
         if possible_errors is None:
-            Trace.log("Manager", 0, "[PlayFab|callPlayFabAPI] possible_errors is None")
+            Trace.log("Manager", 0, "[PlayFab|checkPlayFabEndpoint] possible_errors is None")
             return False
 
         DebugPlayFabLogErrorHandlerCheck = DefaultManager.getDefault("DebugPlayFabLogErrorHandlerCheck", False)
@@ -104,27 +104,37 @@ class PlayFabBaseMethods(object):
         return True
 
     @staticmethod
-    def preparePlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers):
-        if PlayFabBaseMethods.checkPlayFabAPI(api_method, request, success_cb, fail_cb, possible_errors, error_handlers) is False:
+    def preparePlayFabEndpoint(task_name, request, success_cb, fail_cb, possible_errors, error_handlers):
+        if PlayFabBaseMethods.checkPlayFabEndpoint(
+                task_name,
+                request,
+                success_cb,
+                fail_cb,
+                possible_errors,
+                error_handlers) is False:
             return
 
-        __api_cb = PlayFabBaseMethods.make_api_cb(api_method, success_cb, fail_cb, error_handlers)
+        endpoint_cb = PlayFabBaseMethods.makePlayFabEndpointCb(task_name, success_cb, fail_cb, error_handlers)
 
-        return api_method, request, __api_cb
+        return task_name, request, endpoint_cb
 
     @staticmethod
-    def callPlayFabAPI(api_prepare_method, *args, **kwargs):
-        try:
-            prepared_api = api_prepare_method(*args, **kwargs)
-        except Exception as e:
-            PlayFabSettings.GlobalExceptionLogger(e)
+    def startPlayFabEndpoint(task_name, request, cb):
+        request_chain = TaskManager.createTaskChain()
 
+        with request_chain as source:
+            source.addTask(task_name, Request=request, Cb=cb)
+
+        return request_chain
+
+    @staticmethod
+    def callPlayFabEndpoint(endpoint_prepare_method, *args, **kwargs):
+        prepared_endpoint = endpoint_prepare_method(*args, **kwargs)
+
+        if prepared_endpoint is None:
             return False
 
-        if prepared_api is None:
-            return False
-
-        api_method, request, __api_cb = prepared_api
+        task_name, request, endpoint_cb = prepared_endpoint
         callback_called = [False]
 
         def __callback(response, error):
@@ -132,68 +142,28 @@ class PlayFabBaseMethods(object):
                 return
 
             callback_called[0] = True
+            endpoint_cb(response, error)
 
-            try:
-                __api_cb(response, error)
-            except Exception as e:
-                PlayFabSettings.GlobalExceptionLogger(e)
-
-        try:
-            api_method(request, __callback)
-        except Exception as e:
-            PlayFabSettings.GlobalExceptionLogger(e)
-
-            if callback_called[0] is False:
-                __callback(None, PlayFabError())
-
-            return False
-
-        return True
+        return PlayFabBaseMethods.startPlayFabEndpoint(
+            task_name,
+            request,
+            __callback)
 
     @staticmethod
-    def scopePlayFabAPI(source, api_prepare_method, *args, **kwargs):
-        try:
-            prepared_api = api_prepare_method(*args, **kwargs)
-        except Exception as e:
-            PlayFabSettings.GlobalExceptionLogger(e)
+    def scopePlayFabEndpoint(source, endpoint_prepare_method, *args, **kwargs):
+        prepared_endpoint = endpoint_prepare_method(*args, **kwargs)
+
+        if prepared_endpoint is None:
+            Trace.log("Manager", 0, "[PlayFab|scopePlayFabEndpoint] invalid prepared endpoint")
 
             return
 
-        if prepared_api is None:
-            Trace.log("Manager", 0, "[PlayFab|scopePlayFabAPI] invalid prepared API")
+        task_name, request, endpoint_cb = prepared_endpoint
 
-            return
-
-        api_method, request, __api_cb = prepared_api
-
-        def __task_cb(isSkip, __complete_cb):
-            if isSkip is True:
-                __complete_cb(isSkip)
-                return
-
-            completed = [False]
-
-            def __callback(response, error):
-                if completed[0] is True:
-                    return
-
-                completed[0] = True
-                try:
-                    __api_cb(response, error)
-                except Exception as e:
-                    PlayFabSettings.GlobalExceptionLogger(e)
-                finally:
-                    __complete_cb(isSkip)
-
-            try:
-                api_method(request, __callback)
-            except Exception as e:
-                PlayFabSettings.GlobalExceptionLogger(e)
-
-                if completed[0] is False:
-                    __callback(None, PlayFabError())
-
-        source.addCallback(__task_cb)
+        source.addTask(
+            task_name,
+            Request=request,
+            Cb=endpoint_cb)
 
     @staticmethod
     def do_before_cb(cb):

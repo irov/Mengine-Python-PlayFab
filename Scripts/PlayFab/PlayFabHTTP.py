@@ -7,13 +7,14 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraH
     """
     Schedule an asynchronous PlayFab HTTP request.
     The callback receives either response data or a PlayFab error envelope.
+    Returns the request task chain so its owner can cancel the transport.
     """
 
     url = PlayFabSettings.GetURL(urlPath, PlayFabSettings._internalSettings.RequestGetParams)
 
     try:
         j = Mengine.encodeJSON(request)
-    except Exception as e:
+    except (TypeError, ValueError, OverflowError, RuntimeError) as e:
         raise PlayFabErrors.PlayFabException("The given request is not json serializable. {}".format(e))
 
     requestHeaders = {}
@@ -46,9 +47,13 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraH
 
         __request_cb(None, "Request Not Started", "", 408, False)
 
-    with TaskManager.createTaskChain() as source:
-        source.addTask("TaskHeaderData", Url=url, Headers=headers, Data=j, Cb=__request_cb)
+    request_chain = TaskManager.createTaskChain()
+
+    with request_chain as source:
+        source.addTask("TaskPlayFabRequest", Url=url, Headers=headers, Data=j, Cb=__request_cb)
         source.addFunction(__request_finished)
+
+    return request_chain
 
 
 def __makeError(http_code, http_status, error, error_code, error_message, error_details=None):
@@ -84,19 +89,19 @@ def __decodeResponse(reason, response, code, successful):
         if response_text:
             try:
                 response_wrapper = Mengine.decodeJSON(response_text)
+            except (ValueError, OverflowError):
+                response_wrapper = None
 
-                if isinstance(response_wrapper, dict) and response_wrapper.get("error") is not None:
-                    error = __makeError(
-                        response_wrapper.get("code", code),
-                        response_wrapper.get("status", reason or "PlayFab Error"),
-                        response_wrapper.get("error", "UnknownError"),
-                        response_wrapper.get("errorCode", 1),
-                        response_wrapper.get("errorMessage", "PlayFab request failed"),
-                        response_wrapper.get("errorDetails"))
+            if isinstance(response_wrapper, dict) and response_wrapper.get("error") is not None:
+                error = __makeError(
+                    response_wrapper.get("code", code),
+                    response_wrapper.get("status", reason or "PlayFab Error"),
+                    response_wrapper.get("error", "UnknownError"),
+                    response_wrapper.get("errorCode", 1),
+                    response_wrapper.get("errorMessage", "PlayFab request failed"),
+                    response_wrapper.get("errorDetails"))
 
-                    return None, error
-            except Exception:
-                pass
+                return None, error
 
         error = __makeTransportError(
             code,
@@ -109,7 +114,7 @@ def __decodeResponse(reason, response, code, successful):
 
     try:
         response_wrapper = Mengine.decodeJSON(response_text)
-    except Exception:
+    except (ValueError, OverflowError):
         error = __makeError(
             code,
             reason or "Invalid Response",
@@ -175,18 +180,7 @@ def __decodeResponse(reason, response, code, successful):
 
 
 def __httpResponseHandler(reason, response, code, successful, callback):
-    try:
-        response, error = __decodeResponse(reason, response, code, successful)
-    except Exception as e:
-        PlayFabSettings.GlobalExceptionLogger(e)
-
-        response = None
-        error = __makeError(
-            500,
-            "Invalid Response",
-            "JsonParseError",
-            3,
-            "PlayFab returned an invalid response")
+    response, error = __decodeResponse(reason, response, code, successful)
 
     __dispatchResponse(response, error, callback)
 
@@ -198,17 +192,10 @@ def __dispatchResponse(response, error, callback):
     if callback is None:
         return
 
-    try:
-        callback(response, error)
-    except Exception as e:
-        PlayFabSettings.GlobalExceptionLogger(e)
+    callback(response, error)
 
 
 def callGlobalErrorHandler(error):
     if PlayFabSettings.GlobalErrorHandler:
-        try:
-            # Global notification about an API Call failure
-            PlayFabSettings.GlobalErrorHandler(error)
-        except Exception as e:
-            # Global notification about exception in caller's callback
-            PlayFabSettings.GlobalExceptionLogger(e)
+        # Global notification about an API Call failure
+        PlayFabSettings.GlobalErrorHandler(error)
