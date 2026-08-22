@@ -470,6 +470,7 @@ class PlayFabError(object):
             self.ErrorCode = PlayFabErrorCode.ServiceUnavailable
             self.ErrorMessage = "Unable to contact PlayFab server"
             self.ErrorDetails = None  # dictionary of string keys and list of strings for values
+            self.TransportError = True
 
     def fromJson(self, other):
         self.HttpCode = other["code"]
@@ -478,6 +479,7 @@ class PlayFabError(object):
         self.ErrorCode = other["errorCode"]
         self.ErrorMessage = other["errorMessage"]
         self.ErrorDetails = other.get("errorDetails", None)
+        self.TransportError = other.get("transportError", False) is True
 
     # def GenerateErrorReport(self):
     #     str = ""

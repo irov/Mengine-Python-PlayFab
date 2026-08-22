@@ -56,7 +56,7 @@ def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraH
     return request_chain
 
 
-def __makeError(http_code, http_status, error, error_code, error_message, error_details=None):
+def __makeError(http_code, http_status, error, error_code, error_message, error_details=None, transport_error=False):
     return {
         "code": http_code,
         "status": http_status,
@@ -64,6 +64,7 @@ def __makeError(http_code, http_status, error, error_code, error_message, error_
         "errorCode": error_code,
         "errorMessage": error_message,
         "errorDetails": error_details,
+        "transportError": transport_error,
     }
 
 
@@ -76,7 +77,8 @@ def __makeTransportError(http_code, http_status):
         http_status,
         "ServiceUnavailable",
         1123,
-        "Unable to contact PlayFab server")
+        "Unable to contact PlayFab server",
+        transport_error=True)
 
 
 def __decodeResponse(reason, response, code, successful):
@@ -103,9 +105,12 @@ def __decodeResponse(reason, response, code, successful):
 
                 return None, error
 
-        error = __makeTransportError(
+        error = __makeError(
             code,
-            reason or "Transport Error")
+            reason or "HTTP Error",
+            "HttpRequestError",
+            1,
+            reason or "PlayFab request failed")
 
         return None, error
 
