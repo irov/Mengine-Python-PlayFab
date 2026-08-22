@@ -9,6 +9,7 @@ class TaskPlayFabPlatformLogin(Task):
 
         self.success_cb = None
         self.fallback_cb = None
+        self.fail_cb = None
         self.identity_request_id = None
         self.request_chain = None
         self.start_depth = 0
@@ -21,6 +22,7 @@ class TaskPlayFabPlatformLogin(Task):
 
         self.success_cb = Utils.make_functor(params, "SuccessCb")
         self.fallback_cb = Utils.make_functor(params, "FallbackCb")
+        self.fail_cb = Utils.make_functor(params, "FailCb")
 
     def _onValidate(self, params):
         super(TaskPlayFabPlatformLogin, self)._onValidate(params)
@@ -30,6 +32,9 @@ class TaskPlayFabPlatformLogin(Task):
 
         if self.fallback_cb is None:
             self.validateFailed(params, "FallbackCb is None")
+
+        if self.fail_cb is None:
+            self.validateFailed(params, "FailCb is None")
 
     def _onFastSkip(self):
         return True
@@ -88,7 +93,7 @@ class TaskPlayFabPlatformLogin(Task):
                     credential,
                     False,
                     self.__onLoginSuccess,
-                    self.__onLoginFallback,
+                    self.__onLoginFailed,
                     **error_handlers)
             elif provider == "GameCenter":
                 error_handlers = dict((error, self.__onLoginFallback) for error in [
@@ -101,7 +106,7 @@ class TaskPlayFabPlatformLogin(Task):
                     credential,
                     False,
                     self.__onLoginSuccess,
-                    self.__onLoginFallback,
+                    self.__onLoginFailed,
                     **error_handlers)
             else:
                 self.__onLoginFallback("UnsupportedPlatformIdentity")
@@ -125,6 +130,9 @@ class TaskPlayFabPlatformLogin(Task):
 
     def __onLoginFallback(self, reason):
         self.__complete(self.fallback_cb, reason)
+
+    def __onLoginFailed(self, error):
+        self.__complete(self.fail_cb, error)
 
     def __complete(self, cb, value):
         if self.active is False or self.completed is True:
@@ -162,3 +170,4 @@ class TaskPlayFabPlatformLogin(Task):
         self.stage = None
         self.success_cb = None
         self.fallback_cb = None
+        self.fail_cb = None

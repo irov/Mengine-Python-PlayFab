@@ -5,7 +5,6 @@ def onInitialize():
 
     tasks = [
         "TaskPlayFabAuthenticationGetEntityToken",
-        "TaskPlayFabClientAttributeInstall",
         "TaskPlayFabClientExecuteCloudScript",
         "TaskPlayFabClientGetAccountInfo",
         "TaskPlayFabClientGetLeaderboard",

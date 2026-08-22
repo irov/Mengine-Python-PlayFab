@@ -537,11 +537,12 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             success_cb, fail_cb, **error_handlers)
 
     @staticmethod
-    def scopeLoginWithPlatformAccount(source, success_cb, fallback_cb):
+    def scopeLoginWithPlatformAccount(source, success_cb, fallback_cb, fail_cb):
         source.addTask(
             "TaskPlayFabPlatformLogin",
             SuccessCb=success_cb,
-            FallbackCb=fallback_cb)
+            FallbackCb=fallback_cb,
+            FailCb=fail_cb)
 
     @staticmethod
     def getOrCreateCustomID():
