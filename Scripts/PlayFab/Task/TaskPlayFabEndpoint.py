@@ -3,6 +3,7 @@ from Foundation.Task.Task import Task
 
 class TaskPlayFabEndpoint(Task):
     Skiped = True
+    CompleteOnCancel = False
 
     def __init__(self):
         super(TaskPlayFabEndpoint, self).__init__()
@@ -44,6 +45,19 @@ class TaskPlayFabEndpoint(Task):
 
         try:
             request_chain = self._runEndpoint(self.request, self.__onResponse)
+        except Exception as ex:
+            self.log_exception("PlayFab endpoint failed to start: %s", ex)
+            self.__onResponse(None, {
+                "code": 500,
+                "status": "Request Setup Failed",
+                "error": "ClientRequestError",
+                "errorCode": 1,
+                "errorMessage": "PlayFab request could not be started",
+                "errorDetails": None,
+                "transportError": False,
+            })
+
+            return True
         finally:
             self.in_run = False
 
@@ -71,6 +85,8 @@ class TaskPlayFabEndpoint(Task):
             self.complete()
 
     def _onSkip(self):
+        complete_on_cancel = self.CompleteOnCancel is True and self.response_received is False and self.cb is not None
+
         self.active = False
 
         request_chain = self.request_chain
@@ -78,6 +94,18 @@ class TaskPlayFabEndpoint(Task):
 
         if request_chain is not None:
             request_chain.cancel()
+
+        if complete_on_cancel is True:
+            self.response_received = True
+            self.cb(None, {
+                "code": 408,
+                "status": "Request Canceled",
+                "error": "RequestCanceled",
+                "errorCode": 1,
+                "errorMessage": "PlayFab request was canceled",
+                "errorDetails": None,
+                "transportError": True,
+            })
 
     def _onFinally(self):
         self.active = False

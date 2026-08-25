@@ -5,6 +5,8 @@ def onInitialize():
 
     tasks = [
         "TaskPlayFabAuthenticationGetEntityToken",
+        "TaskPlayFabAuthenticationGetEntityTokenForce",
+        "TaskPlayFabCloudScriptExecuteFunction",
         "TaskPlayFabClientExecuteCloudScript",
         "TaskPlayFabClientGetAccountInfo",
         "TaskPlayFabClientGetLeaderboard",
@@ -58,6 +60,9 @@ def onInitialize():
 
         Mengine.addCurrentAccountSetting("PlayFabId", u"0", _cbPlayFabIdChanged)
         Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)  # is PlayFab user registered
+        Mengine.addCurrentAccountSetting("PlayFabDeleteState", u"idle", None)
+        Mengine.addCurrentAccountSetting("PlayFabDeleteRequestId", u"", None)
+        Mengine.addCurrentAccountSetting("PlayFabDeleteRequestedAt", u"0", None)
 
         DisplayName = PlayFabManager.getDefaultDisplayName()
         Mengine.addCurrentAccountSetting("DisplayName", unicode(DisplayName), None)

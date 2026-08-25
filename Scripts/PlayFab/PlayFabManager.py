@@ -559,6 +559,12 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
         return str(custom_id)
 
     @staticmethod
+    def clearAuthentication():
+        PlayFabSettings._internalSettings.EntityToken = None
+        PlayFabSettings._internalSettings.ClientSessionTicket = None
+        PlayFabManager.__resetIdentityLinkState()
+
+    @staticmethod
     def ensureIdentityLinks():
         if PlayFabSettings._internalSettings.ClientSessionTicket is None:
             return False
@@ -947,6 +953,81 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
         source.addScope(
             PlayFabManager.scopePlayFabEndpoint,
             PlayFabManager.prepareExecuteCloudScript,
+            function_name, params,
+            success_cb, fail_cb, **error_handlers)
+
+    # ExecuteFunction
+    @staticmethod
+    def prepareGetFreshEntityToken(success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabAuthenticationGetEntityTokenForce",
+            {},
+            success_cb, fail_cb,
+            [
+                "EntityTokenMissing",
+                "EntityTokenInvalid",
+                "EntityTokenExpired",
+                "EntityTokenRevoked",
+                "InvalidSessionTicket",
+                "NotAuthenticated",
+                "ServiceUnavailable",
+            ],
+            error_handlers)
+
+    @staticmethod
+    def callGetFreshEntityToken(success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.callPlayFabEndpoint(
+            PlayFabManager.prepareGetFreshEntityToken,
+            success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def scopeGetFreshEntityToken(source, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareGetFreshEntityToken,
+            success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def prepareExecuteFunction(function_name, params, success_cb, fail_cb, **error_handlers):
+        @PlayFabManager.do_before_cb(success_cb)
+        def __success_cb(response):
+            return response.get("FunctionResult")
+
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabCloudScriptExecuteFunction",
+            {
+                "FunctionName": function_name,
+                "FunctionParameter": params,
+                "GeneratePlayStreamEvent": False,
+            },
+            __success_cb, fail_cb,
+            [
+                "CloudScriptAPIRequestCountExceeded",
+                "CloudScriptAPIRequestError",
+                "CloudScriptFunctionArgumentSizeExceeded",
+                "CloudScriptHTTPRequestError",
+                "CloudScriptNotFound",
+                "EntityTokenMissing",
+                "EntityTokenInvalid",
+                "EntityTokenExpired",
+                "EntityTokenRevoked",
+                "FunctionNotFound",
+                "ServiceUnavailable",
+            ],
+            error_handlers)
+
+    @staticmethod
+    def callExecuteFunction(function_name, params, success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.callPlayFabEndpoint(
+            PlayFabManager.prepareExecuteFunction,
+            function_name, params,
+            success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def scopeExecuteFunction(source, function_name, params, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareExecuteFunction,
             function_name, params,
             success_cb, fail_cb, **error_handlers)
 

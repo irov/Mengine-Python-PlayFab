@@ -24,4 +24,9 @@ class TaskPlayFabAuthenticationGetEntityToken(TaskPlayFabHTTPEndpoint):
 
     def _onEndpointResponse(self, response, error):
         if response and "EntityToken" in response:
-            PlayFabSettings._internalSettings.EntityToken = response["EntityToken"]
+            entity_token = response["EntityToken"]
+
+            if isinstance(entity_token, dict):
+                entity_token = entity_token.get("EntityToken")
+
+            PlayFabSettings._internalSettings.EntityToken = entity_token
