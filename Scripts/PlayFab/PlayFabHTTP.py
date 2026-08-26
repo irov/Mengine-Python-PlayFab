@@ -3,6 +3,27 @@ import PlayFab.PlayFabSettings as PlayFabSettings
 from Foundation.TaskManager import TaskManager
 
 
+_global_error_handlers = []
+
+
+def addGlobalErrorHandler(handler):
+    if handler in _global_error_handlers:
+        return False
+
+    _global_error_handlers.append(handler)
+
+    return True
+
+
+def removeGlobalErrorHandler(handler):
+    if handler not in _global_error_handlers:
+        return False
+
+    _global_error_handlers.remove(handler)
+
+    return True
+
+
 def DoPost(urlPath, request, authKey, authVal, callback, customData=None, extraHeaders=None):
     """
     Schedule an asynchronous PlayFab HTTP request.
@@ -201,6 +222,16 @@ def __dispatchResponse(response, error, callback):
 
 
 def callGlobalErrorHandler(error):
+    handled = False
+
+    for handler in tuple(_global_error_handlers):
+        try:
+            handled = handler(error) is True or handled
+        except Exception as ex:
+            Mengine.logError("[PlayFab] Global error handler failed: {}".format(ex))
+
     if PlayFabSettings.GlobalErrorHandler:
         # Global notification about an API Call failure
-        PlayFabSettings.GlobalErrorHandler(error)
+        handled = PlayFabSettings.GlobalErrorHandler(error) is True or handled
+
+    return handled

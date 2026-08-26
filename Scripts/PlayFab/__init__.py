@@ -35,6 +35,10 @@ def onInitialize():
 
     PlayFabManager.initializeIdentityLinking()
 
+    from PlayFab.PlayFabAccountDeletion import PlayFabAccountDeletion
+    Mengine.addGlobalModule("PlayFabAccountDeletion", PlayFabAccountDeletion)
+    PlayFabAccountDeletion.initialize()
+
     from TraceManager import TraceManager
     TraceManager.addTrace("PlayFab")
 
@@ -60,9 +64,7 @@ def onInitialize():
 
         Mengine.addCurrentAccountSetting("PlayFabId", u"0", _cbPlayFabIdChanged)
         Mengine.addCurrentAccountSetting("FirstLogin", u"True", None)  # is PlayFab user registered
-        Mengine.addCurrentAccountSetting("PlayFabDeleteState", u"idle", None)
-        Mengine.addCurrentAccountSetting("PlayFabDeleteRequestId", u"", None)
-        Mengine.addCurrentAccountSetting("PlayFabDeleteRequestedAt", u"0", None)
+        PlayFabAccountDeletion.setupAccountSettings()
 
         DisplayName = PlayFabManager.getDefaultDisplayName()
         Mengine.addCurrentAccountSetting("DisplayName", unicode(DisplayName), None)
@@ -71,6 +73,7 @@ def onInitialize():
         Mengine.addCurrentAccountSetting("PlayFabCustomId", unicode(Mengine.generateUniqueIdentity(64)), None)
 
     AccountManager.addCreateAccountExtra(accountSetuper)
+    AccountManager.addLoadAccounts(PlayFabAccountDeletion.onAccountsLoaded)
 
     EntityTypes = [
     ]
@@ -84,6 +87,9 @@ def onInitialize():
 
 def onFinalize():
     Trace.msg_dev("PlayFab.onFinalize")
+
+    from PlayFab.PlayFabAccountDeletion import PlayFabAccountDeletion
+    PlayFabAccountDeletion.finalize()
 
     from PlayFab.PlayFabManager import PlayFabManager
     PlayFabManager.finalizeIdentityLinking()
