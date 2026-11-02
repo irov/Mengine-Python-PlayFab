@@ -10,6 +10,7 @@ def onInitialize():
         "TaskPlayFabClientExecuteCloudScript",
         "TaskPlayFabClientGetAccountInfo",
         "TaskPlayFabClientGetLeaderboard",
+        "TaskPlayFabClientGetLeaderboardAroundPlayer",
         "TaskPlayFabClientGetTitleData",
         "TaskPlayFabClientLinkCustomID",
         "TaskPlayFabClientLinkGameCenterAccount",

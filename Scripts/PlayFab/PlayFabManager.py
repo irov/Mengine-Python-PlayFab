@@ -873,6 +873,38 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             success_cb, fail_cb, **error_handlers)
 
 
+    # GetLeaderboardAroundPlayer
+    @staticmethod
+    def prepareGetLeaderboardAroundPlayer(statistic_name, max_result_count, profile_constraints,
+                                          success_cb, fail_cb, **error_handlers):
+        @PlayFabManager.do_before_cb(success_cb)
+        def __success_cb(response):
+            return response.get("Leaderboard", [])
+
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientGetLeaderboardAroundPlayer",
+            {
+                "StatisticName": statistic_name,
+                "MaxResultsCount": max_result_count,
+                "ProfileConstraints": profile_constraints or {}
+            },
+            __success_cb, fail_cb,
+            [
+                "AccountNotFound",
+                "LeaderboardVersionNotAvailable"
+            ],
+            error_handlers)
+
+    @staticmethod
+    def scopeGetLeaderboardAroundPlayer(source, statistic_name, max_result_count, profile_constraints,
+                                       success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareGetLeaderboardAroundPlayer,
+            statistic_name, max_result_count, profile_constraints,
+            success_cb, fail_cb, **error_handlers)
+
+
     # GetAccountInfo
     @staticmethod
     def prepareGetAccountInfo(success_cb, fail_cb, **error_handlers):
