@@ -244,7 +244,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
 
             return request_id
 
-        def __authenticated_cb():
+        def __authenticated_cb(_value):
             PlayFabManager.__startPlatformIdentityRequest(request_id, provider)
 
         Mengine.waitSemaphore(authenticated_semaphore, __authenticated_cb)
@@ -565,7 +565,7 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
         PlayFabManager.__resetIdentityLinkState()
 
     @staticmethod
-    def ensureIdentityLinks():
+    def ensureIdentityLinks(_value=None):
         if PlayFabSettings._internalSettings.ClientSessionTicket is None:
             return False
 
