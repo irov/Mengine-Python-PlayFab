@@ -829,6 +829,77 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             list_of_keys,
             success_cb, fail_cb, **error_handlers)
 
+    # GetPlayerStatistics
+    @staticmethod
+    def prepareGetPlayerStatistics(statistic_names, success_cb, fail_cb, **error_handlers):
+        @PlayFabManager.do_before_cb(success_cb)
+        def __success_cb(response):
+            Data = response.get("Statistics", {})
+            return Data
+
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientGetPlayerStatistics",
+            {
+                "StatisticNames": statistic_names
+            },
+            __success_cb, fail_cb,
+            [
+                # no possible error codes in playfab documentation
+            ],
+            error_handlers)
+
+    @staticmethod
+    def callGetPlayerStatistics(statistic_names, success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.callPlayFabEndpoint(
+            PlayFabManager.prepareGetPlayerStatistics,
+            statistic_names,
+            success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def scopeGetPlayerStatistics(source, statistic_names, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareGetPlayerStatistics,
+            statistic_names,
+            success_cb, fail_cb, **error_handlers)
+
+    # UpdatePlayerStatistics
+    @staticmethod
+    def prepareUpdatePlayerStatistics(statistics, success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientUpdatePlayerStatistics",
+            {
+                "Statistics": statistics
+            },
+            success_cb, fail_cb,
+            [
+                "AccountNotFound",
+                "APINotEnabledForGameClientAccess",
+                "DuplicateStatisticName",
+                "StatisticCountLimitExceeded",
+                "StatisticNameConflict",
+                "StatisticNotFound",
+                "StatisticValueAggregationOverflow",
+                "StatisticVersionClosedForWrites",
+                "StatisticVersionInvalid",
+            ],
+            error_handlers)
+
+    @staticmethod
+    def callUpdatePlayerStatistics(statistics, success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.callPlayFabEndpoint(
+            PlayFabManager.prepareUpdatePlayerStatistics,
+            statistics,
+            success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def scopeUpdatePlayerStatistics(source, statistics, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareUpdatePlayerStatistics,
+            statistics,
+            success_cb, fail_cb, **error_handlers)
+
     # GetLeaderboard
     @staticmethod
     def prepareGetLeaderboard(statistic_name, max_result_count, profile_constraints,

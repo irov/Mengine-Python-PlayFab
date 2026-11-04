@@ -11,6 +11,8 @@ def onInitialize():
         "TaskPlayFabClientGetAccountInfo",
         "TaskPlayFabClientGetLeaderboard",
         "TaskPlayFabClientGetLeaderboardAroundPlayer",
+        "TaskPlayFabClientGetPlayerStatistics",
+        "TaskPlayFabClientUpdatePlayerStatistics",
         "TaskPlayFabClientGetTitleData",
         "TaskPlayFabClientLinkCustomID",
         "TaskPlayFabClientLinkGameCenterAccount",
