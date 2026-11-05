@@ -306,6 +306,73 @@ class PlayFabManager(Manager, PlayFabBaseMethods):
             user, password,
             success_cb, fail_cb, **error_handlers)
 
+    # Compatibility for games that still use device and Facebook accounts.
+    @staticmethod
+    def prepareLoginWithAndroidDeviceID(device_id, success_cb, fail_cb, **error_handlers):
+        @PlayFabManager.do_before_cb(success_cb)
+        def __success_cb(response):
+            PlayFabManager.__onLoginSuccess("AndroidDeviceID")
+            return response
+
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLoginWithAndroidDeviceID",
+            {"AndroidDeviceId": str(device_id), "CreateAccount": False},
+            __success_cb, fail_cb, ["AccountNotFound"], error_handlers)
+
+    @staticmethod
+    def scopeLoginWithAndroidDeviceID(source, device_id, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareLoginWithAndroidDeviceID,
+            device_id, success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def prepareLinkAndroidDeviceID(device_id, force_link, success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLinkAndroidDeviceID",
+            {"AndroidDeviceId": str(device_id), "ForceLink": force_link},
+            success_cb, fail_cb, ["LinkedDeviceAlreadyClaimed"], error_handlers)
+
+    @staticmethod
+    def scopeLinkAndroidDeviceID(source, device_id, force_link, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareLinkAndroidDeviceID,
+            device_id, force_link, success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def prepareUnLinkAndroidDeviceID(device_id, success_cb, fail_cb, **error_handlers):
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientUnlinkAndroidDeviceID",
+            {"AndroidDeviceId": str(device_id)},
+            success_cb, fail_cb, ["AccountNotLinked", "DeviceNotLinked"], error_handlers)
+
+    @staticmethod
+    def scopeUnLinkAndroidDeviceID(source, device_id, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareUnLinkAndroidDeviceID,
+            device_id, success_cb, fail_cb, **error_handlers)
+
+    @staticmethod
+    def prepareLoginFacebookAccount(access_token, create_account, success_cb, fail_cb, **error_handlers):
+        @PlayFabManager.do_before_cb(success_cb)
+        def __success_cb(response):
+            PlayFabManager.__onLoginSuccess("Facebook")
+            return response
+
+        return PlayFabManager.preparePlayFabEndpoint(
+            "TaskPlayFabClientLoginWithFacebook",
+            {"AccessToken": access_token, "CreateAccount": create_account},
+            __success_cb, fail_cb, ["AccountNotFound", "InvalidFacebookToken"], error_handlers)
+
+    @staticmethod
+    def scopeLoginFacebookAccount(source, access_token, create_account, success_cb, fail_cb, **error_handlers):
+        source.addScope(
+            PlayFabManager.scopePlayFabEndpoint,
+            PlayFabManager.prepareLoginFacebookAccount,
+            access_token, create_account, success_cb, fail_cb, **error_handlers)
+
     # LoginWithPlayFab
     @staticmethod
     def prepareLoginWithPlayFab(user, password, success_cb, fail_cb, **error_handlers):
